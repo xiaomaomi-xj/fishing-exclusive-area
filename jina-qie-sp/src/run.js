@@ -10,7 +10,7 @@ setTimeout(() => {
 
     const { createFFmpeg } = FFmpeg;
     const ffmpeg = createFFmpeg({
-        corePath: 'https://xiaomaomi-xj.gitee.io/fishing-exclusive-area/convert-gif/lib/ffmpeg-core.js',
+        corePath: 'https://xiaomaomi-xj.github.io/fishing-exclusive-area/convert-gif/lib/ffmpeg-core.js',
         log: false,
         progress: progressFun
     });

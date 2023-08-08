@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>变换尺寸-可转换为标准尺寸</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .image {
+            max-width: 100%;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(219, 19, 176);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(182, 15, 146);
+        }
+
+        ul {
+            width: 700px;
+            margin-top: 20px;
+        }
+
+        li {
+            width: 100%;
+            height: 100%;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .li-th {
+            font-weight: bolder;
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 2px solid #ccc;
+            background-color: #ccc;
+        }
+
+        .li-td {
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .li-td:nth-child(odd) {
+            background-color: #ccc;
+        }
+
+        input {
+            width: 60px;
+            height: 30px;
+            text-align: center;
+        }
+
+        select {
+            width: 100px;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="image-box">
+        <img src="" class="image">
+        <canvas class="hideCanvas" style="display: none;" width="0" height="0"></canvas>
+    </div>
+    <input type="file" style="display: none;" class="fileInput">
+    <div class="button-box">
+        <button class="upload">选择图片</button>
+        <input type="number" class="w-chi-cun" value="0">*
+        <input type="number" class="h-chi-cun" value="0">
+        <select class="select-style">
+            <option value="1">毫米（mm）</option>
+            <option value="2">像素（px）</option>
+        </select>
+        <select class="select-chi-cun">
+            <option value="0" selected>自定义</option>
+            <option value="1">一寸</option>
+            <option value="2">小一寸</option>
+            <option value="3">大一寸</option>
+            <option value="4">二寸</option>
+            <option value="5">小二寸</option>
+            <option value="6">大二寸</option>
+        </select>
+        <button class="create">确定</button>
+        <button class="download">下载</button>
+    </div>
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p class="tip" style="margin-top: 10px;color: deeppink;">尺寸说明：</p>
+    <p class="tip" style="margin-top: 10px;color: deeppink;">右击另存为的图片并不是处理好的图片，点击下载，下载的图片才是处理好的！</p>
+    <ul>
+        <div class="li-th">
+            <li>名称</li>
+            <li>尺寸（mm）</li>
+            <li>尺寸（像素）</li>
+        </div>
+        <div class="li-td">
+            <li>一寸</li>
+            <li>25*35</li>
+            <li>295*413</li>
+        </div>
+        <div class="li-td">
+            <li>小一寸</li>
+            <li>22*32</li>
+            <li>260*378</li>
+        </div>
+        <div class="li-td">
+            <li>大一寸</li>
+            <li>33*48</li>
+            <li>390*567</li>
+        </div>
+
+        <div class="li-td">
+            <li>二寸</li>
+            <li>35*49</li>
+            <li>413*579</li>
+        </div>
+        <div class="li-td">
+            <li>小二寸</li>
+            <li>35*45</li>
+            <li>413*531</li>
+        </div>
+        <div class="li-td">
+            <li>大二寸</li>
+            <li>35*53</li>
+            <li>413*626</li>
+        </div>
+    </ul>
+    <script>
+        const imageEl = document.querySelector(".image");
+        const fileInputEl = document.querySelector('.fileInput');
+        const wChiCunEl = document.querySelector(".w-chi-cun");
+        const hChiCunEl = document.querySelector(".h-chi-cun");
+        const selectStyleEl = document.querySelector(".select-style");
+        const uploadEl = document.querySelector(".upload");
+        const createEl = document.querySelector(".create");
+        const downloadEl = document.querySelector(".download");
+        const selectChiCunEl = document.querySelector(".select-chi-cun");
+        const hideCanvasEl = document.querySelector(".hideCanvas");
+        const hideCtx = hideCanvasEl.getContext('2d');
+        let isSelectImg = false;
+        //伪选择文件
+        uploadEl.addEventListener('click', _ => {
+            if (isSelectImg) {
+                reset();
+            }
+            fileInputEl.click();
+        });
+        //选择文件
+        fileInputEl.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择图片，return
+                return;
+            }
+            //图片格式
+            const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+            //验证是否是图片
+            let isTuPian = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isTuPian = true;
+                }
+            });
+            if (!isTuPian) {
+                alert("请选择图片文件！");
+                return;
+            }
+            isSelectImg = true;
+            const fileUrl = URL.createObjectURL(file);
+            imageEl.src = fileUrl;
+            imageEl.onload = function () {
+                const width = imageEl.width;
+                const height = imageEl.height;
+                hideCanvasEl.width = width;
+                hideCanvasEl.height = height;
+                hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            }
+        });
+        let wChiCunV = 0;
+        let hChiCunV = 0;
+        const ratio = 11.8;
+        createEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (!displace()) {
+                return;
+            }
+            //赋值
+            hideCanvasEl.width = wChiCunV;
+            hideCanvasEl.height = hChiCunV;
+            imageEl.style.width = wChiCunV + 'px';
+            imageEl.style.height = hChiCunV + 'px';
+            hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+        });
+        downloadEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (!displace()) {
+                return;
+            }
+            //检查，如果没赋值就不一样
+            const w = hideCanvasEl.width;
+            const h = hideCanvasEl.height;
+            if (w != wChiCunV || h != hChiCunV) {
+                alert("请先点击确定后，再点击下载！");
+                return;
+            }
+            hideCanvasEl.toBlob((blob) => {
+                let blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a')
+                // 地址
+                a.href = blobUrl
+                // 修改文件名
+                a.download = '规定尺寸图片'
+                // 触发点击
+                document.body.appendChild(a)
+                a.click()
+                // 移除
+                setTimeout(() => document.body.removeChild(a));
+            }, "image/png", 1);
+        });
+        //选择尺寸
+        selectChiCunEl.addEventListener("change", _ => {
+            const value = parseInt(selectChiCunEl.value);
+            switch (value) {
+                case 0:
+                    repeat(false, 0, 0);
+                    break;
+                case 1:
+                    repeat(true, 25, 35);
+                    break;
+                case 2:
+                    repeat(true, 22, 32);
+                    break;
+                case 3:
+                    repeat(true, 33, 48);
+                    break;
+                case 4:
+                    repeat(true, 35, 49);
+                    break;
+                case 5:
+                    repeat(true, 35, 45);
+                    break;
+                case 6:
+                    repeat(true, 35, 53);
+                    break;
+            }
+        });
+        //选择单位
+        selectStyleEl.addEventListener("change", _ => {
+            const value = parseInt(selectStyleEl.value);
+            switch (value) {
+                case 1:
+                    wChiCunEl.value = pxDisplace(wChiCunEl.value);
+                    hChiCunEl.value = pxDisplace(hChiCunEl.value);
+                    break;
+                case 2:
+                    wChiCunEl.value = mmDisplace(wChiCunEl.value);
+                    hChiCunEl.value = mmDisplace(hChiCunEl.value);
+                    break;
+            }
+        });
+        //置换
+        function displace() {
+            wChiCunV = parseInt(wChiCunEl.value);
+            hChiCunV = parseInt(hChiCunEl.value);
+            if (wChiCunV <= 0 || isNaN(wChiCunV) || hChiCunV <= 0 || isNaN(hChiCunV)) {
+                alert("长度和宽度必须为数字，且不得小于等于0");
+                return false;
+            }
+            const style = selectStyleEl.value;
+            if ("1" === style) {
+                wChiCunV = Math.ceil(wChiCunV * ratio);
+                hChiCunV = Math.ceil(hChiCunV * ratio);
+            }
+            return true;
+        }
+        //数值置换
+        function vDisPlace(mm) {
+            const style = selectStyleEl.value;
+            if ("2" === style) {
+                return Math.ceil(mm * ratio);
+            }
+            return mm;
+        }
+        //毫米置换
+        function mmDisplace(mm) {
+            return Math.ceil(mm * ratio);
+        }
+        //像素重置
+        function pxDisplace(px) {
+            return Math.floor(px / ratio);
+        }
+        //重置
+        function reset() {
+            window.location.reload();
+        }
+        //复用
+        function repeat(disabled, w, h) {
+            wChiCunEl.disabled = disabled;
+            hChiCunEl.disabled = disabled;
+            wChiCunEl.value = vDisPlace(w);
+            hChiCunEl.value = vDisPlace(h);
+        }
+    </script>
+
+</html>

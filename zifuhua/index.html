@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>字符画</title>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(219, 19, 176);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(182, 15, 146);
+        }
+
+        .message-box {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(0, 0, 0, .6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .help-box {
+            margin-top: 4%;
+            width: 70%;
+            height: 90%;
+            overflow: scroll;
+            padding: 1em 2em;
+            box-sizing: border-box;
+            background-color: #000;
+            border-radius: 5px;
+        }
+
+        .help-box>img {
+            margin-left: 20%;
+            width: 60%;
+            border-radius: 5px;
+        }
+
+        .p-box {
+            padding: .5em;
+            background-color: #000;
+        }
+
+        .p-box>p {
+            color: white;
+            font-size: 1.3em;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+        }
+
+        xiaomaomi-xj {
+            font-size: .9em;
+            font-weight: bolder;
+            color: rgb(226, 125, 9);
+            font-style: italic;
+            background-color: rgba(255, 255, 255, .2);
+        }
+
+        .image{
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="" class="image">
+    <canvas class="hideCanvas" style="display: none;"></canvas>
+    <input type="file" style="display: none;" class="fileInput">
+    <div class="button-box">
+        <button class="upload">选择图片</button>
+        <button class="create-txt">生成并下载</button>
+        <button class="course">使用教程</button>
+    </div>
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="help-box">
+            <div class="p-box">
+                <p>1.选择好图片，然后点击<xiaomaomi-xj>生成并下载</xiaomaomi-xj>。</p>
+            </div>
+            <img src="./img/1.png" alt="">
+            <div class="p-box">
+                <p>2.然后我们可以看到下载的文本文件，<xiaomaomi-xj>双击</xiaomaomi-xj>打开它。</p>
+            </div>
+            <img src="./img/2.png" alt="">
+            <div class="p-box">
+                <p>3.打开后我们看到右下角有个<xiaomaomi-xj>100%</xiaomaomi-xj>，此时只能看出一堆乱字符，我们按住键盘<xiaomaomi-xj>ctrl</xiaomaomi-xj>，<xiaomaomi-xj>滑动鼠标滑轮</xiaomaomi-xj>把他缩小。
+                </p>
+            </div>
+            <img src="./img/3.png" alt="">
+            <div class="p-box">
+                <p>4.把它缩小到最小的时候，也就是<xiaomaomi-xj>10%</xiaomaomi-xj>的时候，画面就会出现了。</p>
+            </div>
+            <img src="./img/4.png" alt="">
+            <div class="p-box">
+                <p>5.如果你双击打开文件的不是记事本，可以先找到文件下载的位置，<xiaomaomi-xj>右击文件->点击打开方式->选择记事本</xiaomaomi-xj>。</p>
+            </div>
+            <img src="./img/5.png" alt="">
+        </div>
+    </div>
+</body>
+<script>
+    let isSelectImg = false;
+    const fileInput = document.querySelector('.fileInput');
+    const uploadEl = document.querySelector('.upload');
+    const creareTxt = document.querySelector('.create-txt');
+    const imageEl = document.querySelector('.image');
+    const hideCanvasEl = document.querySelector('.hideCanvas');
+    const hideCtx = hideCanvasEl.getContext('2d', { willReadFrequently: true });
+    const openMessaheBoxEl = document.querySelector('.course');
+    const messageBoxEl = document.querySelector('.message-box');
+    const closeMessageBoxEl = document.querySelector(".message-box-close");
+    let imageData = null;
+    const body = document.body;
+    //开启
+    openMessaheBoxEl.addEventListener('click', _ => {
+        messageBoxEl.style.display = 'flex';
+        body.scrollTop = document.documentElement.scrollTop = 0;
+        body.style.height = '100vh';
+        body.style.overflowY = 'hidden';
+    });
+    //关闭
+    closeMessageBoxEl.addEventListener('click', _ => {
+        messageBoxEl.style.display = 'none';
+        body.style.height = '';
+        body.style.overflowY = '';
+    });
+    //伪选择文件
+    uploadEl.addEventListener('click', _ => {
+        fileInput.click();
+    });
+    //选择文件
+    fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file == undefined) {
+            //未选择图片，return
+            return;
+        }
+        //图片格式
+        const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+        //验证是否是图片
+        let isTuPian = false;
+        let fileName = file.name;
+        imgStyles.forEach(v => {
+            if (fileName.endsWith(v)) {
+                isTuPian = true;
+            }
+        });
+        if (!isTuPian) {
+            alert("请选择图片文件！");
+            return;
+        }
+        isSelectImg = true;
+        const fileUrl = URL.createObjectURL(file);
+        imageEl.src = fileUrl;
+        imageEl.onload = function () {
+            hideCanvasEl.width = 150;
+            let ratio = imageEl.width / 150;
+            hideCanvasEl.height = Math.floor(imageEl.height / ratio);
+            hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            imageData = hideCtx.getImageData(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+        }
+    });
+    //生成
+    creareTxt.addEventListener('click', () => {
+        if (!isSelectImg) {
+            alert("请先选择图片！");
+            return;
+        }
+        createTxtFun();
+    });
+    function createTxtFun() {
+        const data = imageData.data;
+        let x = 0;
+        let asciiArr = "#$@WOo[(/?=~*^_` ".split("");
+        let ratio = 257 / asciiArr.length;
+        let chartDraw = "";
+        for (var i = 0; i < data.length; i += 4) {
+            //灰色算法
+            var avg = parseInt(0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2])
+            let index = Math.round(Math.floor(avg / ratio));
+            //三倍算是最好的
+            if (index > 1 && index < asciiArr.length - 1) {
+                chartDraw += handelChart(index, asciiArr);
+                chartDraw += handelChart(index - 1, asciiArr);
+                chartDraw += handelChart(index + 1, asciiArr);
+            } else {
+                chartDraw += handelChart(index, asciiArr);
+                chartDraw += handelChart(index, asciiArr);
+                chartDraw += handelChart(index, asciiArr);
+            }
+            x++;
+            if (x >= 150) {
+                chartDraw += '\n\r';
+                x = 0;
+            }
+        }
+        const blob = new Blob([chartDraw], { type: 'text/plain' });
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = '字符画'
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => document.body.removeChild(a))
+    }
+
+    //字符长度2倍处理
+    const chartNumArr = [2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+    function handelChart(index, asciiArr) {
+        let black = "";
+        for (let i = 0; i < chartNumArr[index]; i++) {
+            black += asciiArr[index];
+        }
+        return black;
+    }
+</script>
+
+</html>

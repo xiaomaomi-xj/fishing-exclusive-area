@@ -1,0 +1,5 @@
+
+剔除视频中的马赛克：FFmpeg 可以使用 minterpolate 滤镜来剔除视频中的马赛克。例如，以下命令可以对 input.mp4 中的第 0 分钟到第 1 分钟的视频进行去马赛克处理：
+ffmpeg -i input.mp4 -filter:v "minterpolate='mi_mode=mci:mc_mode=aobmc:mb_size=8'" -ss 0 -t 60 -c:a copy output.mp4
+其中，-filter:v 表示视频滤镜，minterpolate 表示使用 minterpolate 滤镜，mi_mode=mci、mc_mode=aobmc、mb_size=8 分别表示帧间插值算法、
+运动补偿算法和块大小。-ss 0 和 -t 60 表示从视频的第 0 秒开始取 60 秒的视频进行处理。这个命令会将 input.mp4 中的马赛克去除，并生成一个新的视频文件 output.mp4。

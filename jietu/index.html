@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线截图</title>
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(197, 16, 167);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(160, 14, 136);
+        }
+
+        article {
+            background-image: url('./src/1.png');
+            position: relative;
+        }
+
+        .mask {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background-color: rgba(0, 0, 0, .6);
+            display: none;
+            cursor: url(./Cross.cur), default;
+        }
+
+        aside {
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        imgs {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 500px;
+        }
+
+        .mask-left {
+            width: 3px;
+            height: 100%;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            top: 0;
+            left: -3px;
+            cursor: url(./SizeWE.cur), default;
+        }
+
+        .mask-left::after {
+            content: '';
+            display: block;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            left: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .mask-top {
+            width: 100%;
+            height: 3px;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            top: -3px;
+            left: 0;
+            cursor: url(./SizeNS.cur), default;
+        }
+
+        .mask-top::after {
+            content: '';
+            display: block;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mask-right {
+            width: 3px;
+            height: 100%;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            top: 0;
+            right: -3px;
+            cursor: url(./SizeWE.cur), default;
+        }
+
+        .mask-right::after {
+            content: '';
+            display: block;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            left: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .mask-bottom {
+            width: 100%;
+            height: 3px;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            bottom: -3px;
+            left: -0;
+            cursor: url(./SizeNS.cur), default;
+        }
+
+        .mask-bottom::after {
+            content: '';
+            display: block;
+            background-color: rgb(31, 184, 255);
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .message-box {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(0, 0, 0, .6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .img-box {
+            background-color: rgb(44, 44, 44);
+            padding: 1em;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+            margin-top: 5em;
+        }
+
+        .message-box-img {
+            border-radius: 3px;
+        }
+
+        .button-box {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1em;
+            background-color: rgba(0, 0, 0, .3);
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <article>
+        <div class="mask">
+            <aside>
+                <canvas width="0" height="0"></canvas>
+                <div class="mask-left"></div>
+                <div class="mask-top"></div>
+                <div class="mask-right"></div>
+                <div class="mask-bottom"></div>
+            </aside>
+        </div>
+    </article>
+    <imgs>
+        <button class="upload">选择图片</button>
+        <button class="jietu">截图</button>
+        <button class="queding">确定</button>
+        <input type="file" style="display: none;">
+        <img src="" class="base64" style="display: none;" alt="">
+        <img src="" class="blob" style="display: none;" alt="">
+    </imgs>
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="img-box">
+            <div class="button-box">
+                <button class="download">下载</button>
+            </div>
+            <img src="" class="message-box-img">
+        </div>
+
+    </div>
+    <script>
+        let mask = document.querySelector('.mask');
+        let jietu = document.querySelector('.jietu');
+        let queding = document.querySelector(".queding");
+        let aside = document.querySelector('aside');
+        let canvas = document.querySelector('canvas');
+        let ctx = canvas.getContext('2d');
+        let article = document.querySelector('article');
+        const fileInput = document.querySelector('input[type="file"]');
+        const upload = document.querySelector('.upload');
+        //是否以及截图了，控制确定按钮
+        let isJieTu = false;
+        //记录上传图片的宽高
+        const imgWH = { w: 0, h: 0 };
+        //起点
+        const mousedownXy = { x: 0, y: 0 };
+        //终点
+        const mouseupXy = { x: 0, y: 0 };
+        //图像对象
+        let img = null;
+        //是否可以截图
+        let isCanJieTu = false;
+        //是否已经截过一次了
+        let isStart = false;
+        //是否已经选过图片
+        let isSelectImg = false;
+        const maskLeft = document.querySelector('.mask-left');
+        const maskTop = document.querySelector('.mask-top');
+        const maskRight = document.querySelector('.mask-right');
+        const maskBottom = document.querySelector('.mask-bottom');
+        const messageBox = document.querySelector('.message-box');
+        const closeRefsh = document.querySelector(".message-box-close");
+        const messageImg = document.querySelector('.message-box-img');
+        const downloadEl = document.querySelector('.download');
+        function hideMaskChilde() {
+            maskLeft.style.display = 'none';
+            maskTop.style.display = 'none';
+            maskRight.style.display = 'none';
+            maskBottom.style.display = 'none';
+        }
+        function showMaskChilde() {
+            maskLeft.style.display = 'block';
+            maskTop.style.display = 'block';
+            maskRight.style.display = 'block';
+            maskBottom.style.display = 'block';
+        }
+
+        //伪选择文件
+        upload.addEventListener('click', _ => {
+            if (isSelectImg) {
+                cancel();
+            }
+            fileInput.click();
+        });
+        //选择文件
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择图片，return
+                return;
+            }
+            //图片格式
+            const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+            //验证是否是图片
+            let isTuPian = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isTuPian = true;
+                }
+            });
+            if (!isTuPian) {
+                alert("请选择图片文件！");
+                return;
+            }
+            isSelectImg = true;
+            const fileUrl = URL.createObjectURL(file);
+            img = new Image();
+            img.src = fileUrl;
+            article.insertBefore(img, mask);
+            img.onload = () => {
+                imgWH.w = img.width;
+                imgWH.h = img.height;
+                article.style.width = imgWH.w + 'px';
+                article.style.height = imgWH.h + 'px';
+                isCanJieTu = true;
+            }
+        });
+        //截图
+        jietu.addEventListener('click', () => {
+            if (!isCanJieTu) {
+                alert("请先选择图片文件再截图！");
+                return;
+            }
+            if (isStart) {
+                alert("需要刷新网页才能再次使用！");
+                cancel();
+                return;
+            }
+            isStart = true;
+            hideMaskChilde();
+            start();
+        });
+        //确定
+        queding.addEventListener('click', () => {
+            if (!isJieTu) {
+                alert("请先截图再确定！");
+                return;
+            }
+            isJieTu = false;
+            //这个方法存的是截完图怎么异步上传的问题
+            //save();
+            //开始进行模拟弹窗
+            utwBox();
+        });
+        //关闭弹窗，刷新页面
+        closeRefsh.addEventListener('click', () => {
+            cancel();
+        });
+        //开始截图
+        function start() {
+            mask.style.display = 'block';
+            let isMouseDown = false;
+            function mouseDownFun(e) {
+                //鼠标按下
+                showMaskChilde();
+                mousedownXy.x = e.pageX;
+                mousedownXy.y = e.pageY;
+                isMouseDown = true;
+                mask.removeEventListener('mousedown', mouseDownFun);
+            }
+            mask.addEventListener('mousedown', mouseDownFun);
+            function mouseupFun(e) {
+                //鼠标松开
+                mouseupXy.x = e.pageX;
+                mouseupXy.y = e.pageY;
+                isMouseDown = false;
+                //跟换图标
+                canvas.style.cursor = 'url(./SizeAll.cur), default';
+                mask.style.cursor = 'default';
+                mask.removeEventListener('mouseup', mouseupFun);
+                //允许点击确定
+                isJieTu = true;
+                //执行扩展方法
+                extend();
+            }
+            mask.addEventListener('mouseup', mouseupFun);
+            let i = 0;
+            function onmousemoveFun(e) {
+                if (isMouseDown) {
+                    i++;
+                    //鼠标按下处理的事件
+                    let x = e.pageX;
+                    let y = e.pageY;
+                    //计算cancas和aside的宽高
+                    let computeX = x - mousedownXy.x;
+                    let computeY = y - mousedownXy.y;
+                    //右下角永远比左上角大
+                    if (computeX < 10 || computeY < 10) {
+                        return;
+                    }
+                    //赋值(如果控制aside的宽高，让canvas最大，结果就会出错)
+                    aside.style.top = mousedownXy.y + 'px';
+                    aside.style.left = mousedownXy.x + 'px';
+                    canvas.width = computeX;
+                    canvas.height = computeY;
+                    //为canvas赋值图像
+                    //(sx, sy, sWidth, sHeight)指的是截取图片的起始位置，截取大小
+                    //(dx, dy, dWidth, dHeight)指的是canvas的显示图片的起始位置，显示的大小
+                    // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+                    ctx.drawImage(img, mousedownXy.x, mousedownXy.y, computeX, computeY, 0, 0, computeX, computeY);
+                } else {
+                    if (i > 0) {
+                        i = 0;
+                        mask.removeEventListener('mousemove', onmousemoveFun);
+                    }
+                }
+            }
+            mask.addEventListener('mousemove', onmousemoveFun);
+        }
+
+        //获取图片并清空下次使用
+        function save() {
+            uploadFile();
+            //两种保存图片的方式,1.base64,2.blob
+            let base64El = document.querySelector('.base64');
+            let blobEl = document.querySelector('.blob');
+            let imgBase64 = canvas.toDataURL();
+            base64El.src = imgBase64;
+            canvas.toBlob((blob) => {
+                let blobUrl = URL.createObjectURL(blob);
+                blobEl.src = blobUrl;
+            }, "image/png", 1);
+            mask.style.display = 'none';
+            //如果canvas的宽高为0，那么获取图片就会失败，所以要写在后面
+            canvas.width = 0;
+            canvas.height = 0;
+        }
+
+        //异步上传截图
+        function uploadFile() {
+            //字符串就简单了
+            let imgBase64 = canvas.toDataURL();
+            // const xhr=new XMLHttpRequest();
+            // // ...arguments
+            // xhr.send(imgBase64);
+
+            //blob可以转成file，通过formdata异步上传
+            canvas.toBlob(blob => {
+                let file = new File([blob], "裁剪好的图片", { type: 'image/png' });
+                let formData = new FormData();
+                formData.append('file', file);
+                console.log(file);
+                // const xhr=new XMLHttpRequest();
+                // // ...arguments
+                // xhr.send(formData);
+            }, "image/png", 1);
+        }
+
+        //弹窗并下载
+        function utwBox() {
+            messageBox.style.display = 'flex';
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            messageBox.style.height = document.body.offsetHeight + 'px';
+            messageBox.style.minHeight = '100vh';
+            canvas.toBlob((blob) => {
+                let blobUrl = URL.createObjectURL(blob);
+                messageImg.src = blobUrl;
+                downloadEl.addEventListener('click', _ => {
+                    const a = document.createElement('a')
+                    // 地址
+                    a.href = blobUrl
+                    // 修改文件名
+                    a.download = '截好的图片'
+                    // 触发点击
+                    document.body.appendChild(a)
+                    a.click()
+                    // 移除
+                    setTimeout(() => document.body.removeChild(a))
+                });
+            }, "image/png", 1);
+            mask.style.display = 'none';
+            //如果canvas的宽高为0，那么获取图片就会失败，所以要写在后面
+            canvas.width = 0;
+            canvas.height = 0;
+        }
+
+        //取消截图
+        function cancel() {
+            //因为要重置的数据太多，直接刷新网页
+            location.reload();
+        }
+
+
+        //扩展微调,事件一直存在，无需清除，就可以使用箭头函数了，不用再单独声明函数了
+        function extend() {
+            //首先是移动
+            const extendDownXy = { x: 0, y: 0 };
+            let isExtendDown = false;
+            aside.addEventListener('mousedown', (e) => {
+                extendDownXy.x = e.pageX;
+                extendDownXy.y = e.pageY;
+                isExtendDown = true;
+            });
+            const extendUpxY = { X: 0, Y: 0 };
+            aside.addEventListener('mouseup', (e) => {
+                if (!maskLeftdown && !maskRightDown && !maskTopDown && !maskBottomDown) {
+                    extendUpxY.x = e.pageX;
+                    extendUpxY.y = e.pageY;
+                    isExtendDown = false;
+                    let sX = extendUpxY.x - extendDownXy.x;
+                    let sY = extendUpxY.y - extendDownXy.y;
+                    //位置变化，也要改变mousedownXy和mouseupXy
+                    mousedownXy.x += sX;
+                    mousedownXy.y += sY;
+                    mouseupXy.x += sX;
+                    mouseupXy.y += sY;
+                }
+            });
+            //防止鼠标超出边界，所以鼠标移动事件是mask，而不是aside
+            let isCanMove = true;
+            mask.addEventListener('mousemove', e => {
+                //移动
+                if (isExtendDown && isCanMove) {
+                    let x = e.pageX;
+                    let y = e.pageY;
+                    //计算top值和left值
+                    let subX = x - extendDownXy.x;
+                    let subY = y - extendDownXy.y;
+                    mousedownXy.x += subX;
+                    mousedownXy.y += subY;
+                    mouseupXy.x += subX;
+                    mouseupXy.y += subY;
+                    extendDownXy.x = x;
+                    extendDownXy.y = y;
+                    if (mousedownXy.x > 0 && mousedownXy.y > 0 && (mousedownXy.x + (mouseupXy.x - mousedownXy.x)) < imgWH.w && (mousedownXy.y + (mouseupXy.y - mousedownXy.y)) < imgWH.h) {
+                        aside.style.top = mousedownXy.y + 'px';
+                        aside.style.left = mousedownXy.x + 'px';
+                        //绘制
+                        ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                    }
+                    return;
+                }
+                //左边
+                if (maskLeftdown && !isCanMove) {
+                    let x = e.pageX;
+                    //左边不能超过右边
+                    if (x >= mouseupXy.x - 10) {
+                        return;
+                    }
+                    let computeX = maskLeftX.x - x;
+                    aside.style.left = x + 'px';
+                    canvas.width += computeX;
+                    maskLeftX.x = x;
+                    mousedownXy.x = x;
+                    ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                    return;
+                }
+                //右边
+                if (maskRightDown && !isCanMove) {
+                    let x = e.pageX;
+                    //右边不得超过左边
+                    if (x <= mousedownXy.x + 10) {
+                        return;
+                    }
+                    let computeX = x - maskRightX.x;
+                    canvas.width += computeX;
+                    maskRightX.x = x;
+                    mouseupXy.x = x;
+                    ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                    return;
+                }
+                //上边
+                if (maskTopDown && !isCanMove) {
+                    let y = e.pageY;
+                    //上边不得超过下边
+                    if (y >= mouseupXy.y - 10) {
+                        return;
+                    }
+                    let computeY = maskTopY.y - y;
+                    aside.style.top = y + 'px';
+                    canvas.height += computeY;
+                    maskTopY.y = y;
+                    mousedownXy.y = y;
+                    ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                    return;
+                }
+                //下边
+                if (maskBottomDown && !isCanMove) {
+                    let y = e.pageY;
+                    //下边不得超过上边
+                    if (y <= mousedownXy.y + 10) {
+                        return;
+                    }
+                    let computeY = y - maskBottomY.y;
+                    canvas.height += computeY;
+                    maskBottomY.y = y;
+                    mouseupXy.y = y;
+                    ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                    return;
+                }
+            });
+            //左边放大
+            let maskLeftdown = false;
+            const maskLeftX = { x: 0 };
+            maskLeft.addEventListener('mousedown', e => {
+                maskLeftX.x = e.pageX;
+                maskLeftdown = true;
+                //不能移动
+                isCanMove = false;
+            });
+            maskLeft.addEventListener('mouseup', e => {
+                let x = e.pageX;
+                //左边不能超过右边
+                if (x >= mouseupXy.x - 10) {
+                    return;
+                }
+                let computeX = maskLeftX.x - x;
+                aside.style.left = x + 'px';
+                canvas.width += computeX;
+                maskLeftX.x = x;
+                mousedownXy.x = x;
+                ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                maskLeftdown = false;
+                isCanMove = true;
+            });
+            //右边放大
+            let maskRightDown = false;
+            const maskRightX = { x: 0 };
+            maskRight.addEventListener('mousedown', e => {
+                maskRightX.x = e.pageX;
+                maskRightDown = true;
+                //不能移动
+                isCanMove = false;
+            });
+            maskRight.addEventListener('mouseup', e => {
+                let x = e.pageX;
+                //右边不得超过左边
+                if (x <= mousedownXy.x + 10) {
+                    return;
+                }
+                let computeX = x - maskRightX.x;
+                canvas.width += computeX;
+                maskRightX.x = x;
+                mouseupXy.x = x;
+                ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                maskRightDown = false;
+                isCanMove = true;
+            });
+            //上边放大
+            let maskTopDown = false;
+            const maskTopY = { y: 0 };
+            maskTop.addEventListener('mousedown', e => {
+                maskTopY.y = e.pageY;
+                maskTopDown = true;
+                //不能移动
+                isCanMove = false;
+            });
+            maskTop.addEventListener('mouseup', e => {
+                let y = e.pageY;
+                //上边不得超过下边
+                if (y >= mouseupXy.y - 10) {
+                    return;
+                }
+                let computeY = maskTopY.y - y;
+                aside.style.top = y + 'px';
+                canvas.height += computeY;
+                maskTopY.y = y;
+                mousedownXy.y = y;
+                ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                maskTopDown = false;
+                isCanMove = true;
+            });
+            //下边放大
+            let maskBottomDown = false;
+            const maskBottomY = { y: 0 };
+            maskBottom.addEventListener('mousedown', e => {
+                maskBottomY.y = e.pageY;
+                maskBottomDown = true;
+                //不能移动
+                isCanMove = false;
+            });
+            maskBottom.addEventListener('mouseup', e => {
+                let y = e.pageY;
+                //下边不得超过上边
+                if (y <= mousedownXy.y + 10) {
+                    return;
+                }
+                let computeY = y - maskBottomY.y;
+                canvas.height += computeY;
+                maskBottomY.y = y;
+                mouseupXy.y = y;
+                ctx.drawImage(img, mousedownXy.x, mousedownXy.y, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y, 0, 0, mouseupXy.x - mousedownXy.x, mouseupXy.y - mousedownXy.y);
+                maskBottomDown = false;
+                isCanMove = true;
+            });
+        }
+    </script>
+</body>
+
+</html>

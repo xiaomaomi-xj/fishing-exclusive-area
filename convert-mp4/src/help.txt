@@ -1,0 +1,73 @@
+常见视频格式：
+avi，flv，mkv，mov，mp4，webm，wmv
+
+ffmpeg -i name.xxx -vcodec copy -f mp4 ttt.mp4 
+ffmpeg -i filename.flv -c:v libx264 -crf 19 -strict experimental filename.mp4
+ffmpeg -i 1.mp4 -c:v libx264 -crf 23 -s 2x222 -f mp4 5.wmv
+ffmpeg -i 1.mp4 -c:v copy -crf 23 -s 100x100 -b:v 1k -f mp4 6.wmv
+ffmpeg -i 1.mp4 -c:v copy -crf 23 -s 100x100 -b:v 1k -r 30 -f mp4 6.wmv
+//编码
+-c:v： copy，libx264，libx265， libvpx----copy效率最高
+//视频质量--- 0-51（0：无损压缩，18：高质量，23：正常质量，28：低质量，51：最差质量）
+-crf : 23
+//分辨率
+-s： 2x222   （宽度和高度必须被2整除）
+//设置比特率(码率)
+-b:v : 1k
+//频率
+-r: 30
+
+
+1Byte = 8bit
+450kbps  :  代表 每秒钟有450,000比特被传输/解码
+450 / 8 =  55,000Byte   =  55kb
+也就是每秒 55kb
+1分钟视频大小就是： 60 * 55 = 3300 kb = 3.3mb
+
+视频大小(kb) / 视频时长(秒) = 每秒的流量(kb)  * 8 =  kbps
+
+
+m3u8格式：
+自己想用的时候可以用下面的语句（cmd执行）：
+ffmpeg -protocol_whitelist "file,http,https,tcp,tls" -i index.m3u8 save.mp4
+-protocol_whitelist ： 白名单，（默认只有：'file,crypto,data），所以我们需要指定一下白名单
+
+
+
+当视频既有音频轨道和视频轨道时：
+如果您的输入文件同时具有音频和视频，则需要在此处为两个音轨指定输出编解码器，如下所示。
+worker.postMessage({
+    type: 'command',
+    arguments: [
+       '-i', 'audiovideo.webm',
+       '-c:v', 'mpeg4',
+       '-c:a', 'aac', // or vorbis
+       '-b:v', '6400k',  // video bitrate
+       '-b:a', '4800k',  // audio bitrate
+       '-strict', 'experimental', 'audiovideo.mp4'
+     ],
+    files: [
+        {
+            data: new Uint8Array(fileReaderData),
+            name: 'audiovideo.webm'
+        }
+     ]
+    });
+不建议在浏览器中对视频进行转码，因为这会消耗更多的CPU时间和内存。ffmpeg_asm.js很重。可能适合POC :
+
+您的用例是什么？webm（vp8 / vp9）最近被广泛使用。
+
+Chrome将支持以下MIME类型：
+
+"video/webm"
+"video/webm;codecs=vp8"
+"video/webm;codecs=vp9"
+"video/webm;codecs=h264"
+"video/x-matroska;codecs=avc1"
+
+
+
+webm转mp4，产生的问题是，队列太小，转换失败，使用libx264进行转换的时候，会有错误：关闭ffmpeg时队列中剩余2帧
+所以需要设置参数'-max_muxing_queue_size', '9999'给他最大
+
+https://trac.ffmpeg.org/ticket/6375

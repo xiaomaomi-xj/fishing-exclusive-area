@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>文字图片</title>
+    <style>
+        label {
+            font-size: 1.4em;
+        }
+
+        .input-box {
+            height: 1.4em;
+            width: 20em;
+            border: 2px solid #000;
+            border-radius: 2px;
+            padding: .1em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .name {
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            font-size: 1.1em;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        .message-box {
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(0, 0, 0, .6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .img-box {
+            width: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 5em;
+            background-color: rgb(44, 44, 44);
+            padding: 1em;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-img {
+            border-radius: 3px;
+            width: 100%;
+        }
+
+        .button-box-1 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1em;
+            background-color: rgba(0, 0, 0, .3);
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="info">
+        <label>请输入文字:
+            <div class="input-box">
+                <input type="text" class="name">
+            </div>
+        </label>
+        <img src="" class="image">
+        <canvas class="hideCanvas" style="display: none;"></canvas>
+        <input type="file" style="display: none;" class="fileInput">
+        <div class="button-box">
+            <button class="upload">选择图片</button>
+            <button class="create-img">生成</button>
+        </div>
+    </div>
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="img-box">
+            <div class="button-box-1">
+                <button class="download">下载</button>
+            </div>
+            <img src="" class="message-box-img">
+        </div>
+    </div>
+    <canvas width="1500" height="500" class="endCanvas" style="display: none;"></canvas>
+    <script>
+        const labelEl = document.querySelector('label');
+        const nameEl = document.querySelector('.name');
+        const inputEl = document.querySelector('.input-box');
+        nameEl.addEventListener('focus', _ => {
+            inputEl.style.borderColor = 'rgb(255, 0, 191)';
+            nameEl.style.color = 'rgb(255, 0, 191)';
+            labelEl.style.color = 'rgb(255, 0, 191)';
+        });
+
+        nameEl.addEventListener('blur', _ => {
+            inputEl.style.borderColor = 'black';
+            labelEl.style.color = 'black';
+            nameEl.style.color = 'black';
+        });
+        const upload = document.querySelector('.upload');
+        const fileInput = document.querySelector('.fileInput');
+        const imageEl = document.querySelector('.image');
+        const hideCanvasEl = document.querySelector('.hideCanvas');
+        //提升多次getImageData的速度
+        const hideCtx = hideCanvasEl.getContext('2d', { willReadFrequently: true });
+        let imgData = null;
+        //是否选择了图片
+        let isSelectImg = false;
+        //伪选择文件
+        upload.addEventListener('click', _ => {
+            fileInput.click();
+        });
+        //选择文件
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择图片，return
+                return;
+            }
+            //图片格式
+            const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+            //验证是否是图片
+            let isTuPian = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isTuPian = true;
+                }
+            });
+            if (!isTuPian) {
+                alert("请选择图片文件！");
+                return;
+            }
+            isSelectImg = true;
+            const fileUrl = URL.createObjectURL(file);
+            imageEl.src = fileUrl;
+            imageEl.onload = function () {
+                messageBoxEl.style.height = '';
+                if (imageEl.height > 1772) {
+                    messageBoxEl.style.height = document.body.offsetHeight + 15 + 'px';
+                }
+                hideCanvasEl.width = 150;
+                let ratio = imageEl.width / 150;
+                hideCanvasEl.height = Math.floor(imageEl.height / ratio);
+                hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+                imgData = hideCtx.getImageData(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            }
+        });
+        const createImgEl = document.querySelector('.create-img');
+        const canvas = document.querySelector('.endCanvas');
+        const endCtx = canvas.getContext("2d");
+        const messageBoxEl = document.querySelector('.message-box');
+        const closeEl = document.querySelector(".message-box-close");
+        createImgEl.addEventListener('click', _ => {
+            const value = nameEl.value;
+            if (value === null || value === undefined || value.replaceAll(" ", "").length === 0) {
+                alert("请先输入文字！");
+                return;
+            }
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            messageBoxEl.style.display = 'flex';
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            messageBoxEl.style.minHeight = '100vh';
+            createImgFun(value.replaceAll(" ", ""));
+        });
+        closeEl.addEventListener('click', () => {
+            messageBoxEl.style.display = 'none';
+        });
+        function createImgFun(value) {
+            const rgbaData = imgData.data;
+            //字体大小默认是10，canvas宽高除以10就是图片宽高
+            canvas.height = hideCanvasEl.height * 10;
+            const vArr = value.split("");
+            endCtx.fillStyle = "#000";
+            endCtx.fillRect(0, 0, canvas.width, canvas.height);
+            let x = 0;
+            let y = 1;
+            let index = 0;
+            for (let i = 0; i < rgbaData.length; i += 4) {
+                endCtx.fillStyle = `rgba(${rgbaData[i]}, ${rgbaData[i + 1]}, ${rgbaData[i + 2]}, ${rgbaData[i + 3] / 255})`;
+                endCtx.fillText(vArr[index], x * 10, y * 10, canvas.width);
+                x++;
+                if (x >= 150) {
+                    x = 0;
+                    y++;
+                }
+                index++;
+                if (index >= vArr.length) {
+                    index = 0;
+                }
+            }
+            //写完生成图片
+            createImgUrlFun();
+        }
+        const messageBoxImg = document.querySelector('.message-box-img');
+        const downloadEl = document.querySelector('.download');
+        let blobUrl = "";
+        function createImgUrlFun() {
+            canvas.toBlob((blob) => {
+                blobUrl = URL.createObjectURL(blob);
+                messageBoxImg.src = blobUrl;
+            }, "image/png", 1);
+        }
+        downloadEl.addEventListener('click', () => {
+            const a = document.createElement('a')
+            // 地址
+            a.href = blobUrl
+            // 修改文件名
+            a.download = '文字图片'
+            // 触发点击
+            document.body.appendChild(a)
+            a.click()
+            // 移除
+            setTimeout(() => document.body.removeChild(a))
+        });
+    </script>
+</body>
+
+</html>

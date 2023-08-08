@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./lib/ffmpeg.min.js"></script>
+    <script src="./coi-serviceworker.js"></script>
+    <link rel="shortcut icon" href="./src/favicon.ico" type="image/x-icon" />
+    <title>视频剪辑</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        input {
+            width: 100px;
+            height: 30px;
+            text-align: center;
+        }
+
+        body {
+            position: relative;
+        }
+
+        .mask-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mask>span {
+            font-size: 1.2em;
+            font-weight: bolder;
+            color: aliceblue;
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .mask-box>p {
+            position: absolute;
+            color: aliceblue;
+            margin-top: 240px;
+        }
+
+        .mask-son {
+            position: absolute;
+            background-color: #109fff;
+            width: 100%;
+            height: 100%;
+            top: 150px;
+            transition: all 1s;
+        }
+
+        .mask-bak {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            border-top-width: 5px;
+            border-bottom-width: 5px;
+            position: absolute;
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotateZ(360deg);
+            }
+        }
+
+        .mask-close-btn {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        .mask-close-btn:hover {
+            background-color: #107fc9;
+        }
+
+        .mask-down-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask-down-son {
+            padding: 3em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 60%;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.9);
+        }
+
+        .msak-down-video {
+            max-height: 80vh;
+            margin-bottom: 5em;
+        }
+
+        label {
+            margin-left: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <video src="" width="600" controls style="display: none;margin-bottom: 2em;"></video>
+    <input type="file" style="display: none;">
+    <div class="button-box">
+        <button class="upload">选择视频</button>
+        <label for="startMiao">开始时间（秒）:</label>
+        <input type="number" id="startMiao" value="0">
+        <label for="shiChang">时长（秒）:</label>
+        <input type="number" id="shiChang" value="0">
+        <button class="create-img" style="margin-left: 2em;">生成</button>
+    </div>
+    <div class="mask-box" style="display: none;">
+        <div class="mask-bak"></div>
+        <div class="mask">
+            <span><span class="jindu">0</span>%</span>
+            <div class="mask-son"></div>
+        </div>
+        <p class="tips">生成中，请耐心等待....</p>
+    </div>
+    <div class="mask-down-box" style="display: none;">
+        <div class="mask-down-son">
+            <video src="" class="msak-down-video" controls></video>
+            <div class="button-box">
+                <button class="mask-down-btn">下载</button>
+                <a class="mask-close-btn" style="margin-left: 5em;">关闭</a>
+            </div>
+        </div>
+    </div>
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p style="margin-top: 10px;color: deeppink;">说明：</p>
+    <p style="margin-left: 10px;color: rgb(255, 0, 136);font-weight: bolder;">特别说明：如果是第一次使用此功能可能会很慢，请耐心等待！</p>
+    <p style="margin-left: 10px;color: deeppink;">开始时间：从视频的第几秒开始计算。</p>
+    <p style="margin-left: 10px;color: deeppink;">时长：截取多少时间。</p>
+    <p style="margin-left: 10px;color: deeppink;">开始时间和时长：支持小数点后三位。</p>
+    <script src="./src/run.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./lib/ffmpeg.min.js"></script>
+    <script src="./coi-serviceworker.js"></script>
+    <link rel="shortcut icon" href="./src/favicon.ico" type="image/x-icon" />
+    <title>视频格式转mp4</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        input {
+            width: 100px;
+            height: 30px;
+            text-align: center;
+        }
+
+        body {
+            position: relative;
+        }
+
+        .mask-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mask>span {
+            font-size: 1.2em;
+            font-weight: bolder;
+            color: aliceblue;
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .mask-box>p {
+            position: absolute;
+            color: aliceblue;
+            margin-top: 240px;
+        }
+
+        .mask-son {
+            position: absolute;
+            background-color: #109fff;
+            width: 100%;
+            height: 100%;
+            top: 150px;
+            transition: all 1s;
+        }
+
+        .mask-bak {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            border-top-width: 5px;
+            border-bottom-width: 5px;
+            position: absolute;
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotateZ(360deg);
+            }
+        }
+
+        .mask-close-btn {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        .mask-close-btn:hover {
+            background-color: #107fc9;
+        }
+
+        .mask-down-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask-down-son {
+            padding: 3em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 60%;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.9);
+        }
+
+        .msak-down-video {
+            max-height: 80vh;
+            margin-bottom: 5em;
+        }
+
+        label {
+            margin-left: 1em;
+        }
+
+        .checkbox-box {
+            padding: .5em 1em;
+            cursor: default;
+        }
+
+        .checkbox {
+            float: right;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #646464;
+            border-radius: 2px;
+        }
+
+        .checkbox-son {
+            width: 22px;
+            height: 22px;
+            background-color: transparent;
+            border-radius: 2px;
+            margin: 4px;
+        }
+
+        .checkbox-son.check {
+            background-color: #109fff;
+        }
+
+        ul {
+            width: 700px;
+            margin-top: 20px;
+        }
+
+        li {
+            width: 100%;
+            height: 100%;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .li-th {
+            font-weight: bolder;
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 2px solid #ccc;
+            background-color: #ccc;
+        }
+
+        .li-td {
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .li-td:nth-child(odd) {
+            background-color: #ccc;
+        }
+
+        select {
+            width: 120px;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <video src="" width="600" controls style="display: none;margin-bottom: 2em;"></video>
+    <input type="file" style="display: none;">
+    <div class="button-box">
+        <button class="upload">选择视频</button>
+        <label for="fbl-h">分辨率（宽）:</label>
+        <input type="number" id="fbl-h" value="" disabled>
+        <label for="fbl-w">分辨率（高）:</label>
+        <input type="number" id="fbl-w" value="" disabled>
+        <div class="checkbox-box" style="display: inline-block;">
+            <span style="line-height: 30px;">分辨率等比：</span>
+            <div class="checkbox">
+                <div class="checkbox-son check"></div>
+            </div>
+        </div>
+        <label for="pingNum">帧率:</label>
+        <input type="number" id="pingNum" value="0">
+        <br>
+        <br>
+        <span style="margin-left: 1em;">编码格式：</span>
+        <select class="bmgs-style">
+            <option value="copy" selected>copy（效率高）</option>
+            <option value="libx264">x264</option>
+            <option value="libx265">x265</option>
+            <option value="libvpx">VP8 和 VP9</option>
+        </select>
+        <span style="margin-left: 1em;">视频质量：</span>
+        <select class="spzl-style">
+        </select>
+        <label for="ma-lv">视频码率:</label>
+        <input type="number" id="ma-lv" value="0">
+        <select class="bps-style" style="width: 60px;">
+            <option value="k" selected>kbps</option>
+            <option value="M">mbps</option>
+        </select>
+        <button class="create-img" style="margin-left: 2em;">转换为mp4</button>
+    </div>
+    <div class="mask-box" style="display: none;">
+        <div class="mask-bak"></div>
+        <div class="mask">
+            <span><span class="jindu">0</span>%</span>
+            <div class="mask-son"></div>
+        </div>
+        <p class="tips">生成中，请耐心等待....</p>
+    </div>
+    <div class="mask-down-box" style="display: none;">
+        <div class="mask-down-son">
+            <video src="" class="msak-down-video" controls></video>
+            <div class="button-box">
+                <button class="mask-down-btn">下载</button>
+                <a class="mask-close-btn" style="margin-left: 5em;">关闭</a>
+            </div>
+        </div>
+    </div>
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p style="margin-top: 10px;color: deeppink;">说明：</p>
+    <p style="margin-left: 10px;color: rgb(255, 0, 136);font-weight: bolder;">特别说明：如果是第一次使用此功能可能会很慢，请耐心等待！</p>
+    <p style="margin-left: 10px;color: deeppink;">分辨率：可以理解为视频的宽高，只保留整数，建议等比例修改。</p>
+    <p style="margin-left: 10px;color: deeppink;">分辨率等比：保证生成的视频不变形。</p>
+    <p style="margin-left: 10px;color: deeppink;">分辨率越大，体积越大。</p>
+    <p style="margin-left: 10px;color: deeppink;">频率：因为不知道原视频频率是多少，所以没有特殊要求，此值请为0。（可以把他当作一种抽帧的效果）</p>
+    <p style="margin-left: 10px;color: rgb(255, 0, 136);font-weight: bolder;">特别说明：分辨率的宽和高必须可以被2整除！</p>
+    <p style="margin-left: 10px;color: deeppink;">编码格式：取决与你的视频，可以使用默认值，copy效率最高。（如果你转换后的视频无法播放，就请更换编码试试.</p>
+    <p style="margin-left: 10px;color: deeppink;">视频质量：值越小质量越高，同时视频体积越大。</p>
+    <p style="margin-left: 10px;color: deeppink;">视频码率：计算方式：（视频大小(kb) / 视频时长(秒) = 每秒的流量(kb) * 8 = kbps），此值有无效果在于编码格式</p>
+    <p style="margin-left: 10px;color: deeppink;">视频码率：在有效果的情况下：也会影响视频的质量，值越大，视频质量越好，视频体积越大，不知道怎么设置，就为0就好</p>
+    <p style="margin-left: 10px;color: deeppink;">换算公式：1GB=1024MB；1MB=1024KB；1KB=1024Byte；1Byte=8bit</p>
+    <ul>
+        <div class="li-th">
+            <li>分辨率名称（常用的）</li>
+            <li>分辨率值</li>
+        </div>
+        <div class="li-td">
+            <li>240p</li>
+            <li>320*240</li>
+        </div>
+        <div class="li-td">
+            <li>480p</li>
+            <li>640*480</li>
+        </div>
+        <div class="li-td">
+            <li>无</li>
+            <li>854*480</li>
+        </div>
+        <div class="li-td">
+            <li>无</li>
+            <li>960*720</li>
+        </div>
+        <div class="li-td">
+            <li>720p（俗称：高清）</li>
+            <li>1280*720</li>
+        </div>
+        <div class="li-td">
+            <li>无</li>
+            <li>1440*1080</li>
+        </div>
+        <div class="li-td">
+            <li>1080p（俗称：全高清）</li>
+            <li>1920*1080</li>
+        </div>
+        <div class="li-td">
+            <li>1440p（俗称：2k WQHD）</li>
+            <li>2560*1440</li>
+        </div>
+        <div class="li-td">
+            <li>2160p（俗称：4k 超高清）</li>
+            <li>3840*2160</li>
+        </div>
+    </ul>
+    <script src="./src/run.js"></script>
+    <script>
+        const checkBoxEl = document.querySelector('.checkbox-box');
+        const checkBoxSonEl = document.querySelector('.checkbox-son');
+        const fblWEl = document.querySelector('#fbl-w');
+        const fblHEl = document.querySelector('#fbl-h');
+        checkBoxEl.addEventListener('click', _ => {
+            if (checkBoxSonEl.classList.contains('check')) {
+                checkBoxSonEl.classList.remove('check');
+            } else {
+                checkBoxSonEl.classList.add('check');
+                fblHEl.value = fblWEl.value;
+            }
+        });
+
+        const spzlStyleEl = document.querySelector(".spzl-style");
+        for (let i = 0; i <= 51; i++) {
+            const optionEl = document.createElement('option');
+            optionEl.value = i.toString();
+            optionEl.innerHTML = i.toString();
+            switch (i) {
+                case 0:
+                    optionEl.innerHTML = optionEl.innerHTML + "-(无损压缩)";
+                    break;
+                case 18:
+                    optionEl.innerHTML = optionEl.innerHTML + "-(高质量)";
+                    break;
+                case 23:
+                    optionEl.innerHTML = optionEl.innerHTML + "-(正常质量)";
+                    optionEl.selected = true;
+                    break;
+                case 28:
+                    optionEl.innerHTML = optionEl.innerHTML + "-(低质量)";
+                    break;
+                case 51:
+                    optionEl.innerHTML = optionEl.innerHTML + "-(最差质量)";
+                    break;
+            }
+            spzlStyleEl.appendChild(optionEl);
+        }
+    </script>
+</body>
+
+</html>

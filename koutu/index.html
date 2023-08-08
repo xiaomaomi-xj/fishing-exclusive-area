@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>在线抠图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .image {
+            max-width: 100%;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(219, 19, 176);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(182, 15, 146);
+        }
+
+        .message-box {
+            width: 100vw;
+            min-height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(0, 0, 0, .6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .img-box {
+            max-width: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 5em;
+            background-color: rgb(44, 44, 44);
+            padding: 1em;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-img {
+            width: 100%;
+            border-radius: 3px;
+        }
+
+        .tips-box {
+            margin-top: 3em;
+            display: flex;
+            flex-direction: column;
+            border-top: 2px solid #ccc;
+        }
+
+        .tips-title {
+            font-size: 1.5em;
+            color: red;
+        }
+
+        .tips-nr {
+            color: red;
+            margin-left: 2em;
+            margin-top: .5em;
+        }
+
+        .image {
+            display: none;
+        }
+
+        .image-box {
+            width: 0;
+            height: 0;
+            position: relative;
+            background-image: url('./src/1.png');
+        }
+
+        label {
+            font-size: 1.4em;
+            display: flex;
+            margin-top: 1em;
+        }
+
+        .input-box {
+            height: 1.2em;
+            width: 5em;
+            border: 2px solid #000;
+            border-radius: 2px;
+            padding: .1em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qcld {
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            font-size: 1.1em;
+        }
+
+        .mask-bak {
+            background-color: transparent;
+            border: 2px solid rgb(0, 255, 255);
+            position: absolute;
+            box-sizing: border-box;
+        }
+
+        .button-box-1 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1em;
+            background-color: rgba(0, 0, 0, .3);
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="image-box">
+        <img src="" class="image">
+        <canvas class="hideCanvas" width="0" height="0"></canvas>
+    </div>
+    <input type="file" style="display: none;" class="fileInput">
+    <div class="button-box">
+        <button class="upload">选择图片</button>
+        <button class="select">进入括选状态</button>
+        <button class="create">生成</button>
+    </div>
+    <label>去除力度:
+        <div class="input-box">
+            <input type="number" class="qcld" value="30">
+        </div>
+    </label>
+    <div class="tips-box">
+        <p class="tips-title">使用说明：</p>
+        <p class="tips-nr">1.选择好图片，鼠标点到你想去除的颜色位置，就会把整个图片是这个颜色的部分全弄成透明色。(可以多次点击)</p>
+        <p class="tips-nr">2.去除力度越大，去除效果越好，但也会导致去除的误差大，请自行调节。</p>
+        <p class="tips-nr">3.如果你觉得有一小部分扣不到，可以按住ctrl，滑动鼠标滑轮，来进行放大，一点一点的去除。</p>
+        <p class="tips-nr">4.如果你不想把这种颜色位置都变成透明色，只需要括选出来，就会自动保留括选的位置。（可以多次括选）</p>
+        <p class="tips-nr">5.扣完之后点击生成，就可以预览并下载扣好的图片。</p>
+    </div>
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="img-box">
+            <div class="button-box-1">
+                <button class="download">下载</button>
+            </div>
+            <img src="" class="message-box-img">
+        </div>
+    </div>
+    <script>
+        const upload = document.querySelector('.upload');
+        const fileInput = document.querySelector('.fileInput');
+        const imageEl = document.querySelector('.image');
+        const imageBoxEl = document.querySelector('.image-box');
+        const hideCanvasEl = document.querySelector('.hideCanvas');
+        const inputEl = document.querySelector('.qcld');
+        //提升多次getImageData的速度
+        const hideCtx = hideCanvasEl.getContext('2d', { willReadFrequently: true });
+        let imgData = null;
+        //是否选择了图片
+        let isSelectImg = false;
+        //伪选择文件
+        upload.addEventListener('click', _ => {
+            if (isSelectImg) {
+                //换图片则先刷新
+                location.reload();
+            }
+            fileInput.click();
+        });
+        //选择文件
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择图片，return
+                return;
+            }
+            //图片格式
+            const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+            //验证是否是图片
+            let isTuPian = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isTuPian = true;
+                }
+            });
+            if (!isTuPian) {
+                alert("请选择图片文件！");
+                return;
+            }
+            isSelectImg = true;
+            const fileUrl = URL.createObjectURL(file);
+            imageEl.src = fileUrl;
+            imageEl.onload = function () {
+                const width = imageEl.width;
+                const height = imageEl.height;
+                imageBoxEl.style.width = width + 'px';
+                imageBoxEl.style.height = height + 'px';
+                hideCanvasEl.width = width;
+                hideCanvasEl.height = height;
+                hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+                imgData = hideCtx.getImageData(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            }
+        });
+        const selectEl = document.querySelector('.select');
+        //存放位置信息和元素信息
+        const positionArr = [];
+        const elementArr = [];
+        let isQuChuColor = true;
+        selectEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (isQuChuColor) {
+                selectEl.innerText = '退出括选状态';
+                //更改鼠标样式
+                hideCanvasEl.style.cursor = 'url(./Cross.cur), default';
+                isQuChuColor = false;
+            } else {
+                selectEl.innerText = '进入括选状态';
+                //更改鼠标样式
+                hideCanvasEl.style.cursor = 'default';
+                isQuChuColor = true;
+            }
+        });
+        const mouseDownXY = { x: 0, y: 0 };
+        let isMouseDown = false;
+        hideCanvasEl.addEventListener('mousedown', e => {
+            //如果时去除颜色时，不响应此事件
+            if (isQuChuColor) {
+                return;
+            }
+            isMouseDown = true;
+            mouseDownXY.x = e.pageX;
+            mouseDownXY.y = e.pageY;
+            createMaskEl(mouseDownXY.x, mouseDownXY.y);
+        });
+        const mouseUpXY = { x: 0, y: 0 };
+        hideCanvasEl.addEventListener('mouseup', e => {
+            //如果时去除颜色时，不响应此事件
+            if (isQuChuColor) {
+                return;
+            }
+            isMouseDown = false;
+            //右下角永远比左上角大
+            if (mouseUpXY.x - mouseDownXY.x < 10 || mouseUpXY.y - mouseDownXY.y < 10) {
+                return;
+            }
+            mouseUpXY.x = e.pageX;
+            mouseUpXY.y = e.pageY;
+            setMaskElSize(elementArr[elementArr.length - 1], mouseUpXY.x - mouseDownXY.x, mouseUpXY.y - mouseDownXY.y);
+        });
+        hideCanvasEl.addEventListener('mousemove', e => {
+            //如果是去除颜色时，不响应此事件
+            if (isQuChuColor) {
+                return;
+            }
+            if (isMouseDown) {
+                let x = e.pageX;
+                let y = e.pageY;
+                //右下角永远比左上角大
+                if (x - mouseDownXY.x < 10 || y - mouseDownXY.y < 10) {
+                    return;
+                }
+                setMaskElSize(elementArr[elementArr.length - 1], x - mouseDownXY.x, y - mouseDownXY.y);
+            }
+        });
+        //创建元素
+        function createMaskEl(x, y) {
+            const maskEl = document.createElement('div');
+            maskEl.className = 'mask-bak';
+            maskEl.style.top = y + 'px';
+            maskEl.style.left = x + 'px';
+            //设置元素图标
+            maskEl.style.cursor = 'url(./NO2.cur), default';
+            imageBoxEl.insertBefore(maskEl, hideCanvasEl);
+            elementArr.push(maskEl);
+        }
+        //设置元素大小
+        function setMaskElSize(maskEl, w, h) {
+            maskEl.style.width = w + 'px';
+            maskEl.style.height = h + 'px';
+        }
+        //再点击去除颜色的时候，获取各个位置，根据元素的top，left，width，height，来存储
+        function getMaskElPositions() {
+            const maskElArr = document.querySelectorAll('.mask-bak');
+            //从第1位开始，取走几个
+            positionArr.splice(0, positionArr.length);
+            maskElArr.forEach(el => {
+                let sx = parseInt(el.style.left);
+                let sy = parseInt(el.style.top);
+                let ex = parseInt(el.style.left) + parseInt(el.style.width);
+                let ey = parseInt(el.style.top) + parseInt(el.style.height);
+                positionArr.push({ sx, sy, ex, ey });
+            });
+        }
+        //点击去除颜色
+        hideCanvasEl.addEventListener('click', e => {
+            //括选时不响应此事件
+            if (!isQuChuColor) {
+                return;
+            }
+            const value = parseInt(inputEl.value);
+            if (isNaN(value)) {
+                alert("去除力度只支持数字！");
+                return;
+            }
+            if (value < 0 || value > 255) {
+                alert("去除力度不得超过255，不得小于0！");
+                return;
+            }
+            getMaskElPositions();
+            let x = e.pageX;
+            let y = e.pageY;
+            let oneDataArr = hideCtx.getImageData(x, y, 1, 1).data;
+            transparentFun(oneDataArr, value);
+        });
+        //透明
+        function transparentFun(oneDataArr, value) {
+            const data = imgData.data;
+            //获得图片大小
+            const imgWidth = hideCanvasEl.width;
+            let x = 1;
+            let y = 1;
+            for (let i = 0; i < data.length; i += 4) {
+                let isIgnore = false;
+                for (const { sx, sy, ex, ey } of positionArr) {
+                    if (x > sx && x < ex && y > sy && y < ey) {
+                        isIgnore = true;
+                        break;
+                    }
+                }
+                x++;
+                if (x > imgWidth) {
+                    x = 1;
+                    y++;
+                }
+                if (isIgnore) {
+                    continue;
+                }
+                if (Math.abs(oneDataArr[0] - data[i]) < value
+                    && Math.abs(oneDataArr[1] - data[i + 1]) < value
+                    && Math.abs(oneDataArr[2] - data[i + 2]) < value
+                    && Math.abs(oneDataArr[3] - data[i + 3]) < value) {
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                    data[i + 3] = 0;
+                }
+            }
+            hideCtx.putImageData(imgData, 0, 0);
+        }
+        const createBtn = document.querySelector('.create');
+        const messageBoxImg = document.querySelector('.message-box-img');
+        const messageBox = document.querySelector('.message-box');
+        const messageBoxClose = document.querySelector('.message-box-close');
+        let blobUrl = '';
+        createBtn.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            messageBox.style.display = 'flex';
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            messageBox.style.height = document.body.offsetHeight + 'px';
+            hideCanvasEl.toBlob((blob) => {
+                blobUrl = URL.createObjectURL(blob);
+                messageBoxImg.src = blobUrl;
+            }, "image/png", 1);
+        });
+        const downloadEl = document.querySelector('.download');
+        downloadEl.addEventListener('click', _ => {
+            const a = document.createElement('a')
+            // 地址
+            a.href = blobUrl
+            // 修改文件名
+            a.download = '抠图图片'
+            // 触发点击
+            document.body.appendChild(a)
+            a.click()
+            // 移除
+            setTimeout(() => document.body.removeChild(a))
+        });
+        messageBoxClose.addEventListener('click', _ => {
+            messageBox.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

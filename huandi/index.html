@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>证件照换底</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .image {
+            max-width: 100%;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(219, 19, 176);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(182, 15, 146);
+        }
+
+        ul {
+            width: 700px;
+            margin-top: 20px;
+        }
+
+        li {
+            width: 100%;
+            height: 100%;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .li-th {
+            font-weight: bolder;
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 2px solid #ccc;
+            background-color: #ccc;
+        }
+
+        .li-td {
+            display: flex;
+            justify-content: space-around;
+            width: 700px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .li-td:nth-child(odd) {
+            background-color: #ccc;
+        }
+
+        input {
+            width: 60px;
+            height: 30px;
+            text-align: center;
+        }
+
+        select {
+            width: 100px;
+            height: 30px;
+        }
+
+        .hideCanvas {
+            position: absolute;
+        }
+
+        .image-box {
+            width: 295px;
+            height: 413px;
+            background-image: url(./src/1.png);
+            position: relative;
+        }
+
+        .message-box {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(0, 0, 0, .6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .help-box {
+            margin-top: 4%;
+            width: 70%;
+            height: 90%;
+            overflow: scroll;
+            padding: 1em 2em;
+            box-sizing: border-box;
+            background-color: #000;
+            border-radius: 5px;
+        }
+
+        .help-box>img {
+            margin-left: 20%;
+            width: 60%;
+            border-radius: 5px;
+        }
+
+        .p-box {
+            padding: .5em;
+            background-color: #000;
+        }
+
+        .p-box>p {
+            color: white;
+            font-size: 1.3em;
+        }
+
+        ::-webkit-scrollbar {
+            width: 0;
+        }
+
+        xiaomaomi-xj {
+            font-size: .9em;
+            font-weight: bolder;
+            color: rgb(226, 125, 9);
+            font-style: italic;
+            background-color: rgba(255, 255, 255, .2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="image-box">
+        <img class="image" style="display: none;">
+        <canvas class="hideCanvas" width="295" height="413"></canvas>
+    </div>
+    <input type="file" style="display: none;" class="fileInput">
+    <div class="button-box">
+        <button class="upload">选择图片</button>
+        <input type="number" class="w-chi-cun" value="25">*
+        <input type="number" class="h-chi-cun" value="35">
+        <select class="select-style">
+            <option value="1">毫米（mm）</option>
+            <option value="2">像素（px）</option>
+        </select>
+        <select class="select-chi-cun">
+            <option value="0" selected>自定义</option>
+            <option value="1">一寸</option>
+            <option value="2">小一寸</option>
+            <option value="3">大一寸</option>
+            <option value="4">二寸</option>
+            <option value="5">小二寸</option>
+            <option value="6">大二寸</option>
+        </select>
+        <input type="color" class="colorInput" style="margin: 10px;" value="#438edb" disabled>
+        <select class="select-color" style="margin: 10px;">
+            <option value="0">自定义</option>
+            <option value="1" selected>蓝底</option>
+            <option value="2">白底</option>
+            <option value="3">红底</option>
+            <option value="4">透明</option>
+        </select>
+        <button class="create">确定</button>
+        <button class="download">下载</button>
+        <button class="help">使用教程</button>
+    </div>
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p class="tip" style="margin-top: 10px;color: deeppink;">需要借助在线抠图来完成(先把人物抠出来，图片保存，放到这里，进行修改底色)：<a
+            href="https://xiaomaomi-xj.gitee.io/fishing-exclusive-area/koutu">在线抠图</a></p>
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p class="tip" style="margin-top: 10px;color: deeppink;">尺寸说明：</p>
+    <ul>
+        <div class="li-th">
+            <li>名称</li>
+            <li>尺寸（mm）</li>
+            <li>尺寸（像素）</li>
+        </div>
+        <div class="li-td">
+            <li>一寸</li>
+            <li>25*35</li>
+            <li>295*413</li>
+        </div>
+        <div class="li-td">
+            <li>小一寸</li>
+            <li>22*32</li>
+            <li>260*378</li>
+        </div>
+        <div class="li-td">
+            <li>大一寸</li>
+            <li>33*48</li>
+            <li>390*567</li>
+        </div>
+
+        <div class="li-td">
+            <li>二寸</li>
+            <li>35*49</li>
+            <li>413*579</li>
+        </div>
+        <div class="li-td">
+            <li>小二寸</li>
+            <li>35*45</li>
+            <li>413*531</li>
+        </div>
+        <div class="li-td">
+            <li>大二寸</li>
+            <li>35*53</li>
+            <li>413*626</li>
+        </div>
+    </ul>
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="help-box">
+            <div class="p-box">
+                <p>1.首先打开<a href="https://xiaomaomi-xj.gitee.io/fishing-exclusive-area/koutu">在线抠图</a> ，选择图片。</p>
+            </div>
+            <img src="./src/2.png" alt="">
+            <div class="p-box">
+                <p>2.然后进行抠图，扣完后下载下来，备用。</p>
+            </div>
+            <img src="./src/3.png" alt="">
+            <div class="p-box">
+                <p>3.打开现在这个网站，上传那张扣完的图片。
+                </p>
+            </div>
+            <img src="./src/4.png" alt="">
+            <div class="p-box">
+                <p>4.然后就可以换底和更换尺寸操作了。</p>
+            </div>
+            <img src="./src/5.png" alt="">
+            <div class="p-box">
+                <p>5.最后进行下载即可。</p>
+            </div>
+            <img src="./src/6.png" alt="">
+        </div>
+    </div>
+    <script>
+        const imageEl = document.querySelector(".image");
+        const fileInputEl = document.querySelector('.fileInput');
+        const wChiCunEl = document.querySelector(".w-chi-cun");
+        const hChiCunEl = document.querySelector(".h-chi-cun");
+        const selectStyleEl = document.querySelector(".select-style");
+        const uploadEl = document.querySelector(".upload");
+        const createEl = document.querySelector(".create");
+        const downloadEl = document.querySelector(".download");
+        const selectChiCunEl = document.querySelector(".select-chi-cun");
+        const selectColorEl = document.querySelector(".select-color");
+        const colorInputEl = document.querySelector(".colorInput");
+        const hideCanvasEl = document.querySelector(".hideCanvas");
+        const imgBoxEl = document.querySelector(".image-box");
+        const openMessaheBoxEl = document.querySelector(".help");
+        const messageBoxEl = document.querySelector('.message-box');
+        const closeMessageBoxEl = document.querySelector(".message-box-close");
+        //开启
+        const body = document.body;
+        openMessaheBoxEl.addEventListener('click', _ => {
+            messageBoxEl.style.display = 'flex';
+            body.scrollTop = document.documentElement.scrollTop = 0;
+            body.style.height = '100vh';
+            body.style.overflowY = 'hidden';
+        });
+        //关闭
+        closeMessageBoxEl.addEventListener('click', _ => {
+            messageBoxEl.style.display = 'none';
+            body.style.height = '';
+            body.style.overflowY = '';
+        });
+        const hideCtx = hideCanvasEl.getContext('2d');
+        hideCtx.fillStyle = "#438edb";
+        hideCtx.fillRect(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+        //赋予颜色
+        let isSelectImg = false;
+        //伪选择文件
+        uploadEl.addEventListener('click', _ => {
+            if (isSelectImg) {
+                reset();
+            }
+            fileInputEl.click();
+        });
+        //选择文件
+        fileInputEl.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择图片，return
+                return;
+            }
+            //图片格式
+            const imgStyles = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
+            //验证是否是图片
+            let isTuPian = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isTuPian = true;
+                }
+            });
+            if (!isTuPian) {
+                alert("请选择图片文件！");
+                return;
+            }
+            isSelectImg = true;
+            const fileUrl = URL.createObjectURL(file);
+            imageEl.src = fileUrl;
+            imageEl.width = 295;
+            imageEl.height = 413;
+            imageEl.onload = function () {
+                const width = imageEl.width;
+                const height = imageEl.height;
+                hideCanvasEl.width = width;
+                hideCanvasEl.height = height;
+                hideCtx.fillStyle = "#438edb";
+                hideCtx.fillRect(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+                hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            }
+        });
+        let wChiCunV = 0;
+        let hChiCunV = 0;
+        const ratio = 11.8;
+        createEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (!displace()) {
+                return;
+            }
+            //获取颜色
+            const value = parseInt(selectColorEl.value);
+            let colorValue = "#438edb";
+            switch (value) {
+                case 0:
+                    colorValue = colorInputEl.value;
+                    break;
+                case 1:
+                    colorValue = "#438edb"
+                    break;
+                case 2:
+                    colorValue = "#ffffff"
+                    break;
+                case 3:
+                    colorValue = "#ff0000"
+                    break;
+                case 4:
+                    colorValue = "rgba(0,0,0,0)"
+                    break;
+            }
+            //赋值
+            hideCanvasEl.width = wChiCunV;
+            hideCanvasEl.height = hChiCunV;
+            imageEl.style.width = wChiCunV + 'px';
+            imageEl.style.height = hChiCunV + 'px';
+            imgBoxEl.style.width = wChiCunV + 'px';
+            imgBoxEl.style.height = hChiCunV + 'px';
+            hideCtx.clearRect(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            hideCtx.fillStyle = colorValue;
+            hideCtx.fillRect(0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            hideCtx.drawImage(imageEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+        });
+        downloadEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (!displace()) {
+                return;
+            }
+            //检查，如果没赋值就不一样
+            const w = hideCanvasEl.width;
+            const h = hideCanvasEl.height;
+            if (w != wChiCunV || h != hChiCunV) {
+                alert("请先点击确定后，再点击下载！");
+                return;
+            }
+            hideCanvasEl.toBlob((blob) => {
+                let blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a')
+                // 地址
+                a.href = blobUrl
+                // 修改文件名
+                a.download = '证件照换底'
+                // 触发点击
+                document.body.appendChild(a)
+                a.click()
+                // 移除
+                setTimeout(() => document.body.removeChild(a));
+            }, "image/png", 1);
+        });
+        //选择尺寸
+        selectChiCunEl.addEventListener("change", _ => {
+            const value = parseInt(selectChiCunEl.value);
+            switch (value) {
+                case 0:
+                    repeat(false, 0, 0);
+                    break;
+                case 1:
+                    repeat(true, 25, 35);
+                    break;
+                case 2:
+                    repeat(true, 22, 32);
+                    break;
+                case 3:
+                    repeat(true, 33, 48);
+                    break;
+                case 4:
+                    repeat(true, 35, 49);
+                    break;
+                case 5:
+                    repeat(true, 35, 45);
+                    break;
+                case 6:
+                    repeat(true, 35, 53);
+                    break;
+            }
+        });
+        //选择单位
+        selectStyleEl.addEventListener("change", _ => {
+            const value = parseInt(selectStyleEl.value);
+            switch (value) {
+                case 1:
+                    wChiCunEl.value = pxDisplace(wChiCunEl.value);
+                    hChiCunEl.value = pxDisplace(hChiCunEl.value);
+                    break;
+                case 2:
+                    wChiCunEl.value = mmDisplace(wChiCunEl.value);
+                    hChiCunEl.value = mmDisplace(hChiCunEl.value);
+                    break;
+            }
+        });
+        //选择颜色
+        selectColorEl.addEventListener('change', _ => {
+            const value = parseInt(selectColorEl.value);
+            switch (value) {
+                case 0:
+                    colorInputEl.disabled = false;
+                    break;
+                case 1:
+                    colorRepeat(true, "#438edb");
+                    break;
+                case 2:
+                    colorRepeat(true, "#ffffff");
+                    break;
+                case 3:
+                    colorRepeat(true, "#ff0000");
+                    break;
+                case 4:
+                    colorRepeat(true, "#ffffff");
+                    break;
+            }
+        });
+        //颜色复用
+        function colorRepeat(disabled, color) {
+            colorInputEl.disabled = disabled;
+            colorInputEl.value = color;
+        }
+        //置换
+        function displace() {
+            wChiCunV = parseInt(wChiCunEl.value);
+            hChiCunV = parseInt(hChiCunEl.value);
+            if (wChiCunV <= 0 || isNaN(wChiCunV) || hChiCunV <= 0 || isNaN(hChiCunV)) {
+                alert("长度和宽度必须为数字，且不得小于等于0");
+                return false;
+            }
+            const style = selectStyleEl.value;
+            if ("1" === style) {
+                wChiCunV = Math.ceil(wChiCunV * ratio);
+                hChiCunV = Math.ceil(hChiCunV * ratio);
+            }
+            return true;
+        }
+        //数值置换
+        function vDisPlace(mm) {
+            const style = selectStyleEl.value;
+            if ("2" === style) {
+                return Math.ceil(mm * ratio);
+            }
+            return mm;
+        }
+        //毫米置换
+        function mmDisplace(mm) {
+            return Math.ceil(mm * ratio);
+        }
+        //像素重置
+        function pxDisplace(px) {
+            return Math.floor(px / ratio);
+        }
+        //重置
+        function reset() {
+            window.location.reload();
+        }
+        //复用
+        function repeat(disabled, w, h) {
+            wChiCunEl.disabled = disabled;
+            hChiCunEl.disabled = disabled;
+            wChiCunEl.value = vDisPlace(w);
+            hChiCunEl.value = vDisPlace(h);
+        }
+    </script>
+
+</html>

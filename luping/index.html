@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>在线录屏</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .tv-box {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tv-top-boder {
+            width: 100%;
+            height: 70px;
+            background-color: #444444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sxt-box {
+            width: 80px;
+            height: 40px;
+            border-radius: 80px;
+            background-color: #2c2c2c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sxt {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #1b1b1b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .deng {
+            width: 9px;
+            height: 9px;
+            background-color: rgb(65, 0, 0);
+            filter: blur(3px);
+            border-radius: 50%;
+        }
+
+        .deng.open {
+            background-color: red;
+        }
+
+        .body {
+            width: 100%;
+            flex: 1;
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tv-left-boder {
+            width: 150px;
+            height: 80%;
+            background: linear-gradient(to bottom, #133530, #000000, #353392);
+            margin-right: 30px;
+            border-radius: 5px;
+        }
+
+        .tv-right-boder {
+            width: 150px;
+            height: 80%;
+            background: linear-gradient(to bottom, #644d1b, #000000, #570f2b);
+            margin-left: 30px;
+            border-radius: 5px;
+        }
+
+        .video-box {
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tv-bottom-boder {
+            width: 100%;
+            height: 90px;
+            background-color: #444444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-style {
+            width: 1400px;
+            height: 788px;
+            margin: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #4d4d4d;
+        }
+
+        video {
+            width: 100%;
+        }
+
+        .btn-box {
+            width: 200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .start-btn {
+            width: 60px;
+            height: 60px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .open-btn {
+            width: 60px;
+            height: 60px;
+            background-color: #000;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all .2s;
+        }
+
+        .white-box {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .red-box {
+            width: 40px;
+            height: 40px;
+            background-color: red;
+            border-radius: 50%;
+            filter: blur(3px);
+            transition: all .2s;
+        }
+
+        .red-box.start {
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+        }
+
+        .tips-box {
+            position: absolute;
+            color: rgb(30, 255, 0);
+            left: 300px;
+        }
+
+        .import-red {
+            background-color: rgb(175, 3, 3) !important;
+        }
+
+        .tips-right-box {
+            color: rgb(255, 0, 234);
+            position: absolute;
+            right: 100px;
+        }
+
+        .message-box {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background-color: rgba(0, 0, 0, .7);
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+
+        .message-box-close {
+            top: 10px;
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: .5s;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-box-close:hover {
+            background-color: rgba(204, 204, 204, 0.6);
+        }
+
+        .message-box-close:hover .close-left {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .message-box-close:hover .close-right {
+            background-color: rgb(204, 8, 8);
+        }
+
+        .close-left {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(45deg);
+            transition: .5s;
+        }
+
+        .close-right {
+            position: absolute;
+            width: 60%;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            top: 50%;
+            left: 20%;
+            transform: rotateZ(-45deg);
+            transition: .5s;
+        }
+
+        .img-box {
+            background-color: rgb(44, 44, 44);
+            padding: 1em;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.5);
+            margin-top: 5em;
+        }
+
+        .message-box-img {
+            border-radius: 3px;
+        }
+
+        .button-box {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1em;
+            background-color: rgba(0, 0, 0, .3);
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        .video-message-style {
+            width: 1200px;
+        }
+
+        img {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tv-box">
+        <div class="tv-top-boder">
+            <div class="sxt-box">
+                <div class="sxt">
+                    <div class="deng"></div>
+                </div>
+            </div>
+        </div>
+        <div class="body">
+            <div class="tv-left-boder"></div>
+            <div class="video-box">
+                <div class="video-style">
+                    <video src="" class="luping-video"></video>
+                    <video src="" style="display: none;" class="hzh-video"></video>
+                </div>
+            </div>
+            <div class="tv-right-boder"></div>
+        </div>
+        <div class="tv-bottom-boder" style="position: relative;">
+            <div class="tips-box">
+                <p>左边的按钮为打开摄像头</p>
+                <p>右边的按钮为开始录制屏幕</p>
+            </div>
+            <div class="btn-box">
+                <div class="open-btn">
+                    <div
+                        style="width: 50px;height: 50px;border-radius: 50%;background-color: #fff;display: flex;justify-content: center;align-items: center;">
+                        <div class="o1"
+                            style="width: 40px;height: 40px;border-radius: 50%;background-color: #000;display: flex;justify-content: center;align-items: center;transition: all .2s;">
+                            <div
+                                style="width: 30px;height: 30px;border-radius: 50%;background-color: #fff;display: flex;justify-content: flex-end;align-items: flex-start;">
+                                <div class="o2"
+                                    style="width: 15px;height: 15px;border-radius: 50%;background-color: #000;margin: 2px;transition: all .2s;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="start-btn">
+                    <div class="white-box">
+                        <div class="red-box">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tips-right-box">
+                <p style="font-weight: bolder;">注意事项:</p>
+                <p style="margin-left: 2em;">
+                    视频录好后为webm格式，此格式的视频没有进度条,需要转成mp4<br />主页有此功能的实现，录屏的时候建议选择录制整个屏幕，这样就可以录到其他的应用！</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="message-box">
+        <div class="message-box-close">
+            <div class="close-left"></div>
+            <div class="close-right"></div>
+        </div>
+        <div class="img-box">
+            <div class="button-box">
+                <button class="download">下载</button>
+            </div>
+            <div class="video-message-style">
+                <video src="" class="show-video" controls></video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //关闭弹窗
+        const messageBoxCloseEl = document.querySelector('.message-box-close');
+        const messageBoxEl = document.querySelector('.message-box');
+        const showVideoEl = document.querySelector('.show-video');
+        const downloadEl = document.querySelector('.download');
+        messageBoxCloseEl.addEventListener('click', _ => {
+            //关闭刷新
+            window.location.reload();
+        });
+        //下载
+        downloadEl.addEventListener('click', downloadVideo);
+
+        //摄像头
+        const openBtnEl = document.querySelector('.open-btn');
+        const o1El = document.querySelector('.o1');
+        const o2El = document.querySelector('.o2');
+        const dengEl = document.querySelector('.deng');
+        //摄像头样式变化
+        function openBtnStyle() {
+            if (openBtnEl.classList.contains("import-red")) {
+                openBtnEl.classList.remove("import-red");
+                o1El.classList.remove("import-red");
+                o2El.classList.remove("import-red");
+                dengEl.classList.remove("open");
+                return false;
+            } else {
+                openBtnEl.classList.add("import-red");
+                o1El.classList.add("import-red");
+                o2El.classList.add("import-red");
+                dengEl.classList.add("open");
+                return true;
+            }
+        }
+
+        //录屏按钮
+        const startBtnEl = document.querySelector('.start-btn');
+        const redBoxEl = document.querySelector('.red-box');
+        //录屏按钮样式变化
+        function startBtnStyle() {
+            if (redBoxEl.classList.contains("start")) {
+                redBoxEl.classList.remove("start");
+                return false;
+            } else {
+                redBoxEl.classList.add("start");
+                return true;
+            }
+        }
+
+        //摄像头点击事件
+        const lupingVideoEl = document.querySelector('.luping-video');
+        const hzhVideoEl = document.querySelector('.hzh-video');
+        let sxtStream = null;
+        let lpStream = null;
+        openBtnEl.addEventListener('click', _ => {
+            if (!document.pictureInPictureEnabled) {
+                alert('此浏览器不支持画中画功能！');
+                return;
+            }
+            let isOpen = openBtnStyle();
+            if (isOpen) {
+                openSxtEvent();
+            } else {
+                closeStream(sxtStream, hzhVideoEl);
+                if (document.pictureInPictureElement !== null) {
+                    //因为已近有监听了，所以需要在执行一遍
+                    openBtnStyle();
+                }
+            }
+        });
+
+        //录屏点击事件
+        startBtnEl.addEventListener('click', _ => {
+            if (lpStream !== null) {
+                //取消监听事件
+                lpStream.getVideoTracks()[0].removeEventListener('ended', pmStreamClose);
+            }
+            let isStart = startBtnStyle();
+            if (isStart) {
+                startLpEvent();
+            } else {
+                closeStream(lpStream, lupingVideoEl, true);
+            }
+        })
+
+        //打开摄像头事件
+        function openSxtEvent() {
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: true
+            }).then(stream => {
+                sxtStream = stream;
+                hzhVideoEl.srcObject = sxtStream;
+                hzhVideoEl.onloadedmetadata = function (e) {
+                    hzhVideoEl.play();
+                    //借助画中画，就可以让他出现在别的界面上
+                    hzhVideoEl.requestPictureInPicture();
+                };
+            }).catch(err => {
+                //失败的话，关闭样式
+                alert("获取摄像头权限失败！");
+                openBtnStyle();
+            });
+        }
+
+        //共用关闭流
+        function closeStream(stream, video, recorderClose = false) {
+            //关闭画中画
+            if (document.pictureInPictureElement !== null) {
+                document.exitPictureInPicture();
+            }
+            //关闭webm视频流
+            if (recorderClose && recorder !== null) {
+                recorder.stop();
+            }
+            video.pause();
+            const tracksArr = stream.getTracks();
+            tracksArr.forEach(s => {
+                s.stop();
+            });
+        }
+
+        //画中画关闭事件
+        hzhVideoEl.addEventListener('leavepictureinpicture', _ => {
+            openBtnStyle();
+        });
+
+        //屏幕流关闭摄像头
+        function pmStreamClose() {
+            startBtnStyle();
+            closeStream(lpStream, lupingVideoEl, true);
+        }
+
+        //屏幕流
+        let recorder = null;
+        const data = [];
+        function startLpEvent() {
+            navigator.mediaDevices.getDisplayMedia({
+                audio: true
+            }).then(function (stream) {
+                lpStream = stream;
+                lupingVideoEl.srcObject = lpStream;
+                lupingVideoEl.onloadedmetadata = function (e) {
+                    lupingVideoEl.play();
+                    //初始化
+                    initRecorder(lpStream);
+                };
+
+                //监听流关闭
+                lpStream.getVideoTracks()[0].addEventListener('ended', pmStreamClose);
+
+            }).catch(function (err) {
+                //失败的话，改变打开样式
+                alert("获取屏幕共享流失败！");
+                startBtnStyle();
+            });
+        }
+
+        //初始化recorder对象
+        let xiaomaomiUrl = '';
+        function initRecorder(stream) {
+            var options = {
+                audioBitsPerSecond: 128000,
+                videoBitsPerSecond: 2500000,
+                mimeTyPE: "video/webm",
+            }
+            recorder = new MediaRecorder(stream, options);
+            recorder.ondataavailable = function (event) {
+                if (event.data && event.data.size) {
+                    data.push(event.data);
+                }
+            };
+            recorder.start();
+
+            //监听关闭，生成视频
+            recorder.onstop = () => {
+                xiaomaomiUrl = URL.createObjectURL(new Blob(data, { type: 'video/webm' }));
+                showVideoEl.src = xiaomaomiUrl;
+                messageBoxEl.style.display = 'flex';
+            };
+        }
+
+        //下载
+        function downloadVideo() {
+            const a = document.createElement("a");
+            a.href = xiaomaomiUrl;
+            a.download = "录好的视频";
+            // 触发点击
+            document.body.appendChild(a)
+            a.click()
+            // 移除
+            setTimeout(() => document.body.removeChild(a))
+        }
+    </script>
+</body>
+
+</html>

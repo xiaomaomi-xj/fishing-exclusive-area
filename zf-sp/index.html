@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <title>字符视频</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(197, 16, 167);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(160, 14, 136);
+        }
+
+        .showVideo {
+            display: none;
+            max-width: 1000px;
+        }
+
+        .loading-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 99;
+        }
+
+        .loading {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading>span {
+            font-size: 1.2em;
+            font-weight: bolder;
+            color: aliceblue;
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .loading-box>p {
+            position: absolute;
+            color: aliceblue;
+            margin-top: 240px;
+        }
+
+        .loading-son {
+            position: absolute;
+            background-color: #109fff;
+            width: 100%;
+            height: 100%;
+            top: 150px;
+            transition: all 1s;
+        }
+
+        .loading-bak {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            border-top-width: 5px;
+            border-bottom-width: 5px;
+            position: absolute;
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotateZ(360deg);
+            }
+        }
+
+        .mask-close-btn {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        .mask-close-btn:hover {
+            background-color: #107fc9;
+        }
+
+        .mask-down-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            z-index: 999;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask-down-son {
+            padding: 3em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 60%;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.9);
+        }
+
+        .msak-down-video {
+            max-width: 80vw;
+            max-height: 80vh;
+            margin-bottom: 5em;
+        }
+    </style>
+</head>
+
+<body>
+    <video src="" class="showVideo"></video>
+    <div class="button-box">
+        <button class="select-file">选择文件</button>
+        <input type="file" style="display: none;">
+        <button class="create">生成</button>
+    </div>
+    <canvas class="hideCanvas" style="display: none;"></canvas>
+    <canvas class="showCanvas" style="display: none;"></canvas>
+
+    <div class="loading-box" style="display: none;">
+        <div class="loading-bak"></div>
+        <div class="loading">
+            <span><span class="jindu">0</span>%</span>
+            <div class="loading-son"></div>
+        </div>
+        <p class="tips">生成中，请耐心等待....</p>
+    </div>
+
+    <div class="mask-down-box" style="display: none;">
+        <div class="mask-down-son">
+            <video src="" class="msak-down-video" controls></video>
+            <div class="button-box">
+                <button class="mask-down-btn">下载</button>
+                <a class="mask-close-btn" style="margin-left: 5em;">关闭</a>
+            </div>
+        </div>
+    </div>
+
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p style="margin-top: 10px;color: deeppink;">说明：</p>
+    <p style="margin-left: 10px;color: rgb(255, 0, 136);font-weight: bolder;">特别说明：生成的视频在某些浏览器会很卡顿，电脑端微信内置浏览器是个不错的选择。
+    </p>
+    <p style="margin-left: 10px;color: deeppink">采用的类似录屏的机制生成的视频，也就是说一个视频多长，生成视频所需要的时间就是多长。</p>
+    <p style="margin-left: 10px;color: deeppink;">视频生成的格式为webm格式（此格式下没有进度条），需要转为mp4的，可前往这个网站的其他功能。</p>
+
+    <script>
+        const showVideoEl = document.querySelector('.showVideo');
+        const hideCanvasEl = document.querySelector('.hideCanvas');
+        const hideCtx = hideCanvasEl.getContext('2d', { willReadFrequently: true });
+        const showCanvasEl = document.querySelector('.showCanvas');
+        const showCtx = showCanvasEl.getContext('2d');
+        const createBtnEl = document.querySelector('.create');
+        const selectFileEl = document.querySelector('.select-file');
+        const fileEl = document.querySelector('input[type="file"]');
+        let isSelectVideo = false;
+        //视频时长
+        let totlaTime = 0;
+        //选择文件
+        selectFileEl.addEventListener('click', _ => {
+            isSelectVideo = false;
+            fileEl.click();
+        });
+
+        fileEl.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择文件，return
+                return;
+            }
+            //视频格式
+            const videoStyles = [".mp4"];
+            //验证是否是视频
+            let isVideon = false;
+            let fileName = file.name;
+            videoStyles.forEach(v => {
+                if (fileName.endsWith(v)) {
+                    isVideon = true;
+                }
+            });
+            if (!isVideon) {
+                alert("视频文件【只允许后缀名：mp4】！");
+                return;
+            }
+            let fileUrl = URL.createObjectURL(file);
+            showVideoEl.src = fileUrl;
+            showVideoEl.style.display = 'block';
+            showVideoEl.onloadeddata = function () {
+                totlaTime = showVideoEl.duration;
+                if (totlaTime < 1) {
+                    alert("视频时长获取失败！");
+                    return;
+                }
+                const w = showVideoEl.videoWidth;
+                const h = showVideoEl.videoHeight;
+                if (w <= 1 || h <= 1) {
+                    alert("分辨率获取失败！");
+                    return;
+                }
+                computHideCanvasSize(w, h);
+                isSelectVideo = true;
+            }
+        });
+
+        //点击生成进行播放
+        createBtnEl.addEventListener('click', _ => {
+            if (!isSelectVideo) {
+                alert("请先选择视频！");
+                return;
+            }
+            start();
+        });
+
+        //开始事件
+        function start() {
+            showVideoEl.currentTime = 0;
+            showVideoEl.play();
+            const videoStream = showVideoEl.captureStream();
+            const canvasStream = showCanvasEl.captureStream();
+            const audioTrack = videoStream.getAudioTracks()[0];
+            const videoTrack = canvasStream.getVideoTracks()[0];
+            videoTrack.applyConstraints({
+                frameRate: 30
+            }).then(_ => {
+                initRecorder(new MediaStream([videoTrack, audioTrack]));
+                drawVideo();
+                loadingBoxEl.style.display = 'flex';
+                computePg();
+            }).catch(e => {
+                alert("发生错误：" + e);
+            })
+        }
+
+        //视频播放完监听
+        showVideoEl.addEventListener('ended', _ => {
+            //触发关闭事件
+            recorder.stop();
+        });
+
+        //计算canvas大小
+        function computHideCanvasSize(w, h) {
+            hideCanvasEl.width = 200;
+            let ratiow = w / 200;
+            let ratioH = h / ratiow;
+            hideCanvasEl.height = Math.ceil(ratioH);
+            setCanvasSize(hideCanvasEl.width * 10, hideCanvasEl.height * 10);
+        }
+
+        //对canvas进行赋值
+        function drawVideo() {
+            hideCtx.drawImage(showVideoEl, 0, 0, hideCanvasEl.width, hideCanvasEl.height);
+            const data = hideCtx.getImageData(0, 0, hideCanvasEl.width, hideCanvasEl.height).data;
+            showCtx.clearRect(0, 0, showCanvasEl.width, showCanvasEl.height);
+            showCtx.fillStyle = 'white';
+            showCtx.fillRect(0, 0, showCanvasEl.width, showCanvasEl.height);
+            handelVideoPixel(data);
+            setTimeout(drawVideo);
+        }
+
+        //处理像素
+        function handelVideoPixel(data) {
+            let x = 0;
+            let y = 0;
+            let asciiArr = "#$@WOo[(/?=~*^_` ".split("");
+            let ratio = 257 / asciiArr.length;
+            let chartDraw = "";
+            for (var i = 0; i < data.length; i += 4) {
+                var avg = parseInt(0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]);
+                let index = Math.round(Math.floor(avg / ratio));
+                showCtx.fillStyle = 'black';
+                showCtx.fillText(asciiArr[index], x, y);
+                x += 10;
+                if (x >= showCanvasEl.width) {
+                    y += 10;
+                    x = 0;
+                }
+            }
+        }
+
+        //设置canvas大小
+        function setCanvasSize(w, h) {
+            showCanvasEl.width = w;
+            showCanvasEl.height = h;
+        }
+
+        //浮窗
+        const loadingBoxEl = document.querySelector('.loading-box');
+        const loadingSonEl = document.querySelector('.loading-son');
+        const jinduEl = document.querySelector('.jindu');
+        const maskDownBoxEl = document.querySelector('.mask-down-box');
+        const msakDownVideoEl = document.querySelector('.msak-down-video');
+        const maskDownBtn = document.querySelector('.mask-down-btn');
+        const maskCloseBtn = document.querySelector('.mask-close-btn');
+        maskCloseBtn.addEventListener('click', _ => {
+            window.location.reload();
+        });
+
+        maskDownBtn.addEventListener('click', _ => {
+            download(xiaomaomiUrl, "字符化后的视频");
+        });
+
+        //下载
+        function download(url, fileName) {
+            if (url == "") {
+                alert("视频生成中，请等待...");
+                return;
+            }
+            const a = document.createElement('a')
+            // 地址
+            a.href = url
+            // 修改文件名
+            a.download = fileName
+            // 触发点击
+            document.body.appendChild(a)
+            a.click()
+            // 移除
+            setTimeout(() => document.body.removeChild(a));
+        }
+
+        //计算进度
+        function computePg() {
+            let currentTime = showVideoEl.currentTime;
+            let ratio = currentTime / totlaTime;
+            if (ratio >= 1) {
+                return;
+            }
+            let perRatio = ratio * 100;
+            let jd = perRatio.toFixed(2);
+            let topV = parseInt(jd) * 1.5;
+            loadingSonEl.style.top = (150 - topV) + 'px';
+            jinduEl.innerHTML = jd;
+            setTimeout(computePg, 500);
+        }
+
+        //进度完成
+        function pgCompleted() {
+            loadingSonEl.style.top = '0px';
+            jinduEl.innerHTML = 100;
+            msakDownVideoEl.src = xiaomaomiUrl;
+            msakDownVideoEl.onloadeddata = function () {
+                loadingBoxEl.style.display = 'none';
+                maskDownBoxEl.style.display = 'flex';
+            }
+        }
+
+        //初始化
+        let recorder = null;
+        let xiaomaomiUrl = '';
+        const dataArr = [];
+        function initRecorder(stream) {
+            var options = {
+                mimeTyPE: "video/webm",
+            }
+            recorder = new MediaRecorder(stream, options);
+            recorder.ondataavailable = function (event) {
+                if (event.data && event.data.size) {
+                    dataArr.push(event.data);
+                }
+            };
+            recorder.start();
+            recorder.onstop = () => {
+                xiaomaomiUrl = URL.createObjectURL(new Blob(dataArr, { type: 'video/webm' }));
+                pgCompleted();
+            };
+        }
+    </script>
+</body>
+
+</html>

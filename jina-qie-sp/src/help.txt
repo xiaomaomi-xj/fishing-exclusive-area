@@ -1,0 +1,11 @@
+ffmpeg -ss 00:00:03 -i inputVideo.mp4 -to 00:00:08 -c:v copy -c:a copy  trim_ipseek_copy.mp4
+-ss:开始时间
+-t:截取的时长
+-s:分辨率
+-r:频率（速度的快慢，给了固定值：30）
+-f:规定文件格式
+await ffmpeg.run('-i', encodeName, '-ss', start_miao, '-t', shi_chang, '-s', fbl, '-r', '30', '-f', 'gif', outFileName);
+
+
+如果我们在-i参数之后插入-ss参数，则称为输出搜索。(生成的视频开头会发生停顿)
+ffmpeg -i inputVideo.mp4 -ss 00:00:03 -to 00:00:08 -c:v copy -c:a copy trimmedVideo.mp4

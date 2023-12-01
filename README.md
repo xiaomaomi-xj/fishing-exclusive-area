@@ -20,3 +20,4 @@
 | [剪切视频](https://xiaomaomi-xj.github.io/fishing-exclusive-area/jina-qie-sp) | 通过输入秒（保留3位）的方式进行精确的对视频剪切。             |
 | [去除视频马赛克](https://xiaomaomi-xj.github.io/fishing-exclusive-area/qc-msk) | 速度很慢，不推荐很大的视频，建议可以先对原视频进行剪切一下，然后再进行去除马赛克。（去除效果堪忧）             |
 | [字符视频](https://xiaomaomi-xj.github.io/fishing-exclusive-area/zf-sp) | 根据上传的视频生成由字符组成的视频。             |
+| [去除图片水印](https://xiaomaomi-xj.github.io/fishing-exclusive-area/qc-tp-sy) | 在线去除图片水印，只需要阔选出水印所在的位置，即可对图片进行去除水印操作。             |

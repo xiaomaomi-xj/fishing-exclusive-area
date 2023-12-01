@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon" />
+    <script src="./lib/ffmpeg.min.js"></script>
+    <script src="./coi-serviceworker.js"></script>
+    <title>去除图片水印</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .mask-box {
+            position: relative;
+        }
+
+        .mask {
+            position: absolute;
+            z-index: 1;
+            display: block;
+            background-color: rgba(0, 0, 0, .1);
+            cursor: url(./Cross.cur), default;
+        }
+
+        .mask-bak {
+            position: absolute;
+            border: 2px solid rgb(0, 255, 0);
+            box-sizing: border-box;
+            cursor: url(./SizeAll.cur), default;
+        }
+
+        button {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+        }
+
+        button:hover {
+            background-color: #107fc9;
+        }
+
+        button:nth-last-of-type(1) {
+            background-color: rgb(16, 197, 128);
+        }
+
+        button:nth-last-of-type(1):hover {
+            background-color: rgb(11, 155, 100);
+        }
+
+        button:nth-last-of-type(2) {
+            background-color: rgb(197, 16, 167);
+        }
+
+        button:nth-last-of-type(2):hover {
+            background-color: rgb(160, 14, 136);
+        }
+
+        .loading-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, .7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 99;
+        }
+
+        .loading {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading>span {
+            font-size: 1.2em;
+            font-weight: bolder;
+            color: aliceblue;
+            position: absolute;
+            z-index: 2;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .loading-box>p {
+            position: absolute;
+            color: aliceblue;
+            margin-top: 240px;
+        }
+
+        .loading-son {
+            position: absolute;
+            background-color: #109fff;
+            width: 100%;
+            height: 100%;
+            top: 150px;
+            transition: all 1s;
+        }
+
+        .loading-bak {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #109fff;
+            border-top-width: 5px;
+            border-bottom-width: 5px;
+            position: absolute;
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            to {
+                transform: rotateZ(360deg);
+            }
+        }
+
+        .mask-close-btn {
+            background-color: #109fff;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.3em;
+            padding: .3em .6em;
+            border-radius: 3px;
+            transition: all .3s;
+            margin-right: 1em;
+        }
+
+        .mask-close-btn:hover {
+            background-color: #107fc9;
+        }
+
+        .mask-down-box {
+            width: 100vw;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+            position: absolute;
+            z-index: 999;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .mask-down-son {
+            padding: 3em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 60%;
+            background-color: #2e2e2e;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 3px rgba(0, 0, 0, 0.9);
+        }
+
+        .msak-down-img {
+            max-height: 80vh;
+            margin-bottom: 5em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mask-box">
+        <div class="mask" style="display: none;">
+            <div class="mask-bak"></div>
+        </div>
+        <img src="" style="display: none;">
+    </div>
+    <div class="button-box">
+        <button class="select-file">选择文件</button>
+        <input type="file" style="display: none;">
+        <button class="inclusive-select">进行括选</button>
+        <button class="create-img">生成图片</button>
+    </div>
+
+    <div class="loading-box" style="display: none;">
+        <div class="loading-bak"></div>
+        <div class="loading">
+            <span><span class="jindu">0</span>%</span>
+            <div class="loading-son"></div>
+        </div>
+        <p class="tips">生成中，请耐心等待....</p>
+    </div>
+
+    <div class="mask-down-box" style="display: none;">
+        <div class="mask-down-son">
+            <img src="" class="msak-down-img">
+            <div class="button-box">
+                <button class="mask-down-btn">下载</button>
+                <a class="mask-close-btn" style="margin-left: 5em;">关闭</a>
+            </div>
+        </div>
+    </div>
+
+    <div style="width: 100%;height: 2px;background: linear-gradient(to right,red,blue,red);margin-top: 10px;"></div>
+    <p style="margin-top: 10px;color: deeppink;">说明：</p>
+    <p style="margin-left: 10px;color: rgb(255, 0, 136);font-weight: bolder;">特别说明：如果是第一次使用此功能可能会很慢，请耐心等待！</p>
+    <p style="margin-left: 10px;color: deeppink;">先选择图片，然后括选，括选的时候范围可以大一点（但不能太大，会影响原本没有水印的地方），生成就好了。</p>
+
+    <script>
+        const maskEl = document.querySelector('.mask');
+        const maskBakEl = document.querySelector('.mask-bak');
+        const imgEl = document.querySelector('img');
+        const fileEl = document.querySelector('input[type="file"]');
+        const selectFileEl = document.querySelector('.select-file');
+        const inclusiveSelectEl = document.querySelector('.inclusive-select');
+        const createImgEl = document.querySelector(".create-img");
+        let isSelectImg = false;
+        let isInclusive = false;
+        let xiaomaomiFile = null;
+        let xiaomaomiUrl = '';
+        let currentImgType = 'png';
+
+        selectFileEl.addEventListener('click', _ => {
+            if (isInclusive) {
+                window.location.reload();
+                return;
+            }
+            fileEl.click();
+        });
+
+        fileEl.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file == undefined) {
+                //未选择文件，return
+                return;
+            }
+            //图片格式
+            const imgStyles = ["jpeg", "jpg", "png", "gif", "bmp"];
+            //验证是否是图片
+            let isImg = false;
+            let fileName = file.name;
+            imgStyles.forEach(v => {
+                if (fileName.toLocaleLowerCase().endsWith(v)) {
+                    currentImgType = v;
+                    isImg = true;
+                }
+            });
+            if (!isImg) {
+                alert("图片文件【只允许后缀名：" + imgStyles.join("、") + "】！");
+                return;
+            }
+            let fileUrl = URL.createObjectURL(file);
+            imgEl.src = fileUrl;
+            imgEl.style.display = 'block';
+            imgEl.onload = function () {
+                maskEl.style.width = imgEl.naturalWidth + 'px';
+                maskEl.style.height = imgEl.naturalHeight + 'px';
+                isSelectImg = true;
+                xiaomaomiFile = file;
+            }
+            imgEl.onerror = function () {
+                alert("图片无法加载，请检查图片文件是否【篡改、损坏】！");
+            }
+        });
+
+        //进行括选
+        inclusiveSelectEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (inclusiveSelectEl.innerHTML === "进行括选") {
+                maskEl.style.display = 'block';
+                inclusiveSelectEl.style.display = 'none';
+            }
+        });
+
+        //生成图片
+        createImgEl.addEventListener('click', _ => {
+            if (!isSelectImg) {
+                alert("请先选择图片！");
+                return;
+            }
+            if (!isInclusive) {
+                alert("请先括选水印的位置！");
+                return;
+            }
+            stopScroll2Top();
+            loadingBoxEl.style.display = 'flex';
+            removeWaterMark(xiaomaomiFile, computeValue());
+        });
+
+        //回到页面头顶，停止滚顶(图片是有可能超出屏幕的)
+        function stopScroll2Top(){
+            window.scrollTo(0,0);
+            document.body.style.width = '100vw';
+            document.body.style.height = '100vh';
+            document.body.style.overflow = 'hidden';
+        }
+
+        //计算值
+        function computeValue() {
+            let imgW = imgEl.naturalWidth;
+            let imgH = imgEl.naturalHeight;
+            let w = parseInt(maskBakEl.style.width);
+            let h = parseInt(maskBakEl.style.height);
+            let x = parseInt(maskBakEl.style.left);
+            let y = parseInt(maskBakEl.style.top);
+            if (x < 0) {
+                x = 0;
+            }
+            if (y < 0) {
+                y = 0;
+            }
+            if (w > imgW) {
+                w = imgW;
+            }
+            if (h > imgH) {
+                h = imgH;
+            }
+            return `delogo=x=${x}:y=${y}:w=${w}:h=${h}:show=0`;
+        }
+
+        //开始监听
+        const mouseDownXy = { x: 0, Y: 0 };
+        let isMouseDown = false;
+        maskEl.addEventListener('mousedown', mousedownFun);
+        //鼠标按下处理
+        function mousedownFun(e) {
+            isInclusive = true;
+            mouseDownXy.x = e.pageX;
+            mouseDownXy.y = e.pageY;
+            isMouseDown = true;
+            //清除
+            maskEl.removeEventListener('mousedown', mousedownFun);
+        }
+
+        //鼠标移动，这个不需要清楚
+        maskEl.addEventListener('mousemove', e => {
+            let x = e.pageX;
+            let y = e.pageY;
+            maskBakEl.style.cursor = 'url(./SizeAll.cur), default';
+            if (isMouseDown && !isMouseUp) {
+                inclusiveSizeFun(x, y);
+                return;
+            }
+            if (isMouseUp && isMaskBakDown) {
+                inclusivePositionFun(x, y);
+                return;
+            }
+        });
+
+        //鼠标松开
+        const mouseupXy = { x: 0, y: 0 };
+        let isMouseUp = false;
+        maskEl.addEventListener('mouseup', mouseupFun);
+        //事件处理
+        function mouseupFun(e) {
+            mouseupXy.x = e.pageX;
+            mouseupXy.y = e.pageY;
+            isMouseUp = true;
+            inclusiveSizeFun(e.pageX, e.pageY);
+            //清除
+            maskEl.removeEventListener('mouseup', mouseupFun);
+        }
+
+        //小方块鼠标按下
+        const maskBakDownXy = { x: 0, y: 0 };
+        let isMaskBakDown = false;
+        maskBakEl.addEventListener('mousedown', e => {
+            let x = e.pageX;
+            let y = e.pageY;
+            maskBakDownXy.x = x;
+            maskBakDownXy.y = y;
+            isMaskBakDown = true;
+        });
+
+        //小方块鼠标松开
+        const maskBakUpXy = { x: 0, y: 0 };
+        maskBakEl.addEventListener('mouseup', e => {
+            let x = e.pageX;
+            let y = e.pageY;
+            maskBakUpXy.x = x;
+            maskBakUpXy.y = y;
+            isMaskBakDown = false;
+            inclusivePositionFun(x, y);
+        });
+
+        //阔选框大小函数
+        function inclusiveSizeFun(x, y) {
+            if (mouseDownXy.x + 10 > x || mouseDownXy.y + 10 > y) {
+                return;
+            }
+            let computeW = x - mouseDownXy.x;
+            let computeH = y - mouseDownXy.y;
+            maskBakEl.style.top = mouseDownXy.y + 'px';
+            maskBakEl.style.left = mouseDownXy.x + 'px';
+            maskBakEl.style.width = computeW + 'px';
+            maskBakEl.style.height = computeH + 'px';
+        }
+
+        //阔选框位置
+        function inclusivePositionFun(x, y) {
+            let computeX = x - maskBakDownXy.x;
+            let computeY = y - maskBakDownXy.y;
+            let topV = parseInt(maskBakEl.style.top);
+            let leftV = parseInt(maskBakEl.style.left);
+            maskBakDownXy.x += computeX;
+            maskBakDownXy.y += computeY;
+            //判断边界
+            let endXV = leftV + computeX;
+            let endYV = topV + computeY;
+            let endWV = endXV + parseInt(maskBakEl.style.width);
+            let endHV = endYV + parseInt(maskBakEl.style.height);
+            if (endXV <= 0 || endYV <= 0) {
+                return;
+            }
+            if (endWV >= imgEl.naturalWidth || endHV >= imgEl.naturalHeight) {
+                return;
+            }
+            maskBakEl.style.left = leftV + computeX + 'px';
+            maskBakEl.style.top = topV + computeY + 'px';
+        }
+
+        //下载
+        function download(url, fileName) {
+            if (url == "") {
+                alert("图片生成中，请等待...");
+                return;
+            }
+            const a = document.createElement('a')
+            // 地址
+            a.href = url
+            // 修改文件名
+            a.download = fileName
+            // 触发点击
+            document.body.appendChild(a)
+            a.click()
+            // 移除
+            setTimeout(() => document.body.removeChild(a));
+        }
+
+        window.coi = {
+            shouldRegister: () => true,
+            shouldDeregister: () => false,
+            coepCredentialless: () => !(window.chrome || window.netscape),
+            doReload: () => window.location.reload(),
+            quiet: false
+        }
+
+        const { createFFmpeg } = FFmpeg;
+        const ffmpeg = createFFmpeg({
+            corePath: 'https://xiaomaomi-xj.github.io/fishing-exclusive-area/convert-gif/lib/ffmpeg-core.js',
+            log: false,
+            progress: progressFun
+        });
+
+        const maskDownBoxEl = document.querySelector('.mask-down-box');
+        const msakDownImgEl = document.querySelector('.msak-down-img');
+        const maskDownBtn = document.querySelector('.mask-down-btn');
+        const maskCloseBtn = document.querySelector('.mask-close-btn');
+        maskCloseBtn.addEventListener('click', _ => {
+            window.location.reload();
+        });
+
+        maskDownBtn.addEventListener('click', _ => {
+            download(xiaomaomiUrl, "去除水印后的图片");
+        });
+
+        const loadingBoxEl = document.querySelector('.loading-box');
+        const loadingSonEl = document.querySelector('.loading-son');
+        const jinduEl = document.querySelector('.jindu');
+        async function removeWaterMark(file, position) {
+            let encodeName = encodeURI(file.name);
+            const inputFileData = await file.arrayBuffer();
+            await ffmpeg.load();
+            ffmpeg.FS('writeFile', encodeName, new Uint8Array(inputFileData));
+            let outFileName = 'output.' + currentImgType;
+            await ffmpeg.run('-i', encodeName, '-vf', position, outFileName);
+            const outputData = ffmpeg.FS('readFile', outFileName);
+            loadingSonEl.style.top = '0px';
+            jinduEl.innerHTML = '100';
+            setTimeout(() => {
+                loadingBoxEl.style.display = 'none';
+                //只有png才能有后缀名，其他的浏览器并不认识
+                xiaomaomiUrl = URL.createObjectURL(new Blob([outputData.buffer], { type: 'image/png'}));
+                msakDownImgEl.src = xiaomaomiUrl;
+                maskDownBoxEl.style.display = 'flex';
+            }, 1000);
+        }
+
+        //进度处理
+        function progressFun(bg) {
+            let ratio = bg['ratio'];
+            if (ratio) {
+                let perRatio = ratio * 100;
+                let jd = perRatio.toFixed(2);
+                let topV = parseInt(jd) * 1.5;
+                loadingSonEl.style.top = (150 - topV) + 'px';
+                jinduEl.innerHTML = jd;
+            }
+        }
+    </script>
+</body>
+
+</html>
